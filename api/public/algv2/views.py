@@ -55,6 +55,24 @@ def get_students(contact_id: int = None):
     return results
 
 
+@router.post("/student", response_model=Student)
+def post_students(student: Student):
+    student.id = student.id or uuid4()
+    student.updated = datetime.datetime.utcnow().isoformat()
+    sql = f'UPSERT INTO i_student (id, first_name, last_name, middle_name, age, school_id, course_id, group_id, contact_id, updated) ' \
+          f"VALUES (\'{student.id}\', \'{student.first_name}\', \'{student.last_name}\', \'{student.middle_name}\'," \
+          f"{student.age}, {student.school_id}, {student.course_id}, {student.group_id}, {student.contact_id}, CAST(\'{student.updated}\' AS DateTime))"
+    logger.debug(f'sql = {sql}')
+    result = db.execute_query(sql)
+    sql = f'SELECT * FROM i_student WHERE id = \'{student.id}\''
+    st = db.execute_query(sql)[0].rows[0]
+    logger.info(f'st = {st}')
+    st = delete_null(st)
+    student = Student(**st)
+    logger.debug(f'result = {student}')
+    return student
+
+
 @router.get("/contact", response_model=list[Contact])
 def get_contacts():
     sql = 'SELECT * FROM i_contact'

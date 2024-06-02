@@ -13,20 +13,21 @@ class ContactStatusEnum(str, Enum):
 
 class Student(BaseModel):
     id: str
-    updated: datetime
-    first_name: str
-    last_name: str
-    middle_name: str
-    age: int
-    school: int
-    course_id: int
-    group_id: int
+    updated: datetime | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    middle_name: str | None = None
+    age: int | None = None
+    school_id: int | None = None
+    course_id: int | None = None
+    group_id: int | None = None
+    contact_id: int
 
 
 class Contact(BaseModel):
     id: int | None
     amo_id: int | None = None
-    updated: datetime = None
+    updated: datetime | None = None
     created: datetime = None
     name: str | None = None
     first_name: str | None = None
