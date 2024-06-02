@@ -2,15 +2,18 @@ import asyncio
 import json
 
 from amo_utils.client import AMOClient
+from ai_utils.client import AIClient
 from api.utils.logger import logger_config
 from api.db_utils import db_connector
 
 logger = logger_config(__name__)
 
+
 class BackgroundManager:
 
     def __init__(
             self, amo_client : AMOClient = None,
+            ai_client: AIClient = None,
             sleep_time:int = 1,
             sleep_contact2ai_message: int = 15,
             sleep_ai2contact_message: int = 20,
@@ -20,10 +23,11 @@ class BackgroundManager:
         self.sleep_new_contact = sleep_new_contact
         self.sleep_contact2ai_message = sleep_contact2ai_message
         self.sleep_ai2contact_message = sleep_ai2contact_message
-        self.amo_client = AMOClient(
+        self.amo_client = amo_client or AMOClient(
             url_prefix='turboaiagency',
             long_token="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjRiYjkxMTVhYTNmYmI5OWYzNTcxYTM2M2ViMzdkNDJlOTEyNDk4YWZjOWJiZTdhMTQ2MWU1NjhmNjhiMjRiNzVhMzYyNDMwYjE2ZDg1M2VmIn0.eyJhdWQiOiI1OGI5NTliMi0wZjFiLTRkZTAtYmQ0ZS0wOTA0M2Y0NmNlMjIiLCJqdGkiOiI0YmI5MTE1YWEzZmJiOTlmMzU3MWEzNjNlYjM3ZDQyZTkxMjQ5OGFmYzliYmU3YTE0NjFlNTY4ZjY4YjI0Yjc1YTM2MjQzMGIxNmQ4NTNlZiIsImlhdCI6MTcxNzIyNzA4MywibmJmIjoxNzE3MjI3MDgzLCJleHAiOjE3NDg3MzYwMDAsInN1YiI6IjExMDQ0NTc4IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxNzQ4NzU0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiOWZkZGU3N2UtNjEzOS00OTIxLWI4ODMtODcxODBiOWFiZDQzIn0.KAbmdEhQ6u-5znl3YagjiUv3_6NEo8-G1dg6D_vVOs9BV1OG9g3E3I9wdrFVyvZQtvwe0PLsYdG5yFGhcYLuUr5yB9UHTE6ozBmw4OSeiko0JhHVi4MWHiL5irZrzjxc1kcyFU0LEoKe264iWPZxRoYwVCdLiK0Dw2l7hLiake9pLZ4JuaOF5BG4qrMwvSHc82bYifAAhCNsmhXFFGE7AjjxUxLNnrN6G0kv-1gsF6TKXOmIM-UAEI8M1dqpqJdAm8lEiVY8LfAb45sWEBa96eCoL3SvluhoV1usQbDeJnv9hvr0anzJTAAeVK3Cf3I8KjzWKCrugGLeidM5zysnRg"
         )
+        self.aiclient = ai_client or AIClient(url_prefix='', long_token='')
 
     async def run(self):
         count = 1
@@ -51,21 +55,30 @@ class BackgroundManager:
                     contact = await self.amo_client.get_contact(main_contact_id)
                     validated_contact = self.amo_client.get_validated_contact(contact)
                     logger.info(f'validated_contact = {validated_contact}')
-                    db_connector.upsert_contact_from_amo(validated_contact)
-                    new_pipeline_id = self.amo_client.pipelines['AI']
-                    new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
-                    data_patch_leads = [{'id': lead['id'],
-                                         'pipeline_id': new_pipeline_id,
-                                         'status_id': new_status_id,
-                                         },
-                                        ]
-                    data_patch_leads = json.dumps(data_patch_leads)
-                    logger.debug(f'data_patch_leads = {data_patch_leads}')
-                    result = await self.amo_client.patch_leads(json=data_patch_leads)
-                    logger.debug(f'result = {result}')
-                else:
-                    pass
-                    # move_lead_
+                    if validated_contact['phone']:
+                        db_connector.upsert_contact_from_amo(validated_contact)
+                        new_pipeline_id = self.amo_client.pipelines['AI']
+                        new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
+                        data_patch_leads = [{'id': lead['id'],
+                                             'pipeline_id': new_pipeline_id,
+                                             'status_id': new_status_id,
+                                             },
+                                            ]
+                        logger.debug(f'data_patch_leads = {data_patch_leads}')
+                        result = await self.amo_client.patch_leads(json_data=data_patch_leads)
+                        logger.debug(f'result = {result}')
+                        ai_result = await self.aiclient.send_newcontact2ai(validated_contact)
+
+                    else:
+                        new_pipeline_id = self.amo_client.pipelines['Human']
+                        new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
+                        data_patch_leads = [{'id': lead['id'],
+                                             'pipeline_id': new_pipeline_id,
+                                             'status_id': new_status_id,
+                                             },
+                                            ]
+                        result = await self.amo_client.patch_leads(json_data=data_patch_leads)
+                        # move_lead_
 
         logger.info(f'do_new_contact result = {result}')
         return result

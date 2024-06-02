@@ -14,7 +14,7 @@ class AMOClientData:
         "pipelines": "/api/v4/leads/pipelines",
         "contacts": "/api/v4/contacts",
     }
-    pipelines = {'default': 8164598, 'AI': 8177166}
+    pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310}
     pipelines_statuses = {
         8164598: {
             "Неразобранное": 66751006,
@@ -27,6 +27,12 @@ class AMOClientData:
             "Переговоры": 66839002,
             "Успешно реализовано": 142,
             "Закрыто и не реализовано": 143
+        },
+        8232310: {
+            "Неразобранное": 67221122,
+            "Первичный контакт": 67221126,
+            "Переговоры": 67221130,
+            "Принимают решение": 67221134,
         }
     }
 
@@ -98,19 +104,20 @@ class AMOClient(AMOClientData, AMOClientStatic):
                 result = {}
         return status, result
 
-    async def _request_patch(self, suffics_name, json, **kwargs):
+    async def _request_patch(self, suffics_name, json_data, **kwargs):
         result = {}
         headers = self._get_headers()
         async with ClientSession(headers=headers) as session:
             url = self.url + self.suffics[suffics_name]
-            # logger.info(f'url = {url}')
-            async with session.patch(url=url, json=json, **kwargs) as response:
+            logger.info(f'url = {url}')
+            async with session.patch(url=url, data=json_data, **kwargs) as response:
                 # logger.info(f'resp.status = {response.status}, headers = {response.headers}')
                 result = await response.read()
                 status = response.status
             if status in (http.HTTPStatus.OK,
                           http.HTTPStatus.CREATED,
                           ):
+
                 result = json.loads(result)
         return status, result
 
@@ -125,8 +132,9 @@ class AMOClient(AMOClientData, AMOClientStatic):
         logger.debug(f'status = {status}')
         return result
 
-    async def patch_leads(self, json, **kwargs):
-        status, result = await self._request_patch(suffics_name="leads", json=json, **kwargs)
+    async def patch_leads(self, json_data, **kwargs):
+        json_data = json.dumps(json_data)
+        status, result = await self._request_patch(suffics_name="leads", json_data=json_data, **kwargs)
         return result
 
 

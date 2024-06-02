@@ -7,10 +7,18 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from api.db_utils import db
-
-from api.public.algv2.models import StudentStatus, School, Course, Group, Message
+from api.utils.logger import logger_config
+from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message
 
 router = APIRouter()
+
+logger = logger_config(__name__)
+
+def delete_null(r: dict):
+    for k, v in r.copy().items():
+        if v is None:
+            r.pop(k)
+    return r
 
 def test_back_task():
     pass
@@ -33,6 +41,32 @@ def create_contact_status(contact_status: StudentStatus):
     # todo add logics
     return contact_status
 
+@router.get("/student", response_model=list[Student])
+def get_students(contact_id: int = None):
+    sql = 'SELECT * FROM i_student'
+    if contact_id:
+        sql += f' WHERE contact_id = {contact_id}'
+    # sql += ' ORDER BY id'
+    result = db.execute_query(sql)[0].rows
+    results = []
+    for r in result:
+        r = delete_null(r)
+        results.append(Student(**r))
+    return results
+
+
+@router.get("/contact", response_model=list[Contact])
+def get_contacts():
+    sql = 'SELECT * FROM i_contact'
+    # sql += ' ORDER BY "id"'
+    result = db.execute_query(sql)[0].rows
+    logger.debug(f'result = {result}')
+    results = []
+    for r in result:
+        r = delete_null(r)
+        results.append(Contact(**r))
+    return results
+
 
 @router.get("/school", response_model=list[School])
 def get_school():
@@ -40,6 +74,7 @@ def get_school():
     result = db.execute_query(get_course_sql)[0].rows
     results = []
     for r in result:
+        r = delete_null(r)
         results.append(School(**r))
     return results
 
