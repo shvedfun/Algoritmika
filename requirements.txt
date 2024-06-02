@@ -1,0 +1,8 @@
+fastapi
+pydantic
+pydantic-settings
+uvicorn
+ydb[yc]
+Jinja2
+sqlmodel
+psycopg2-binary
