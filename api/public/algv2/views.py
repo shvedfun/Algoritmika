@@ -36,10 +36,10 @@ def create_message(ms: Message, back_task: BackgroundTasks=None): #
     return result # RedirectResponse("/message/html")
 
 
-@router.post("/contact_status", response_model=StudentStatus)
-def create_contact_status(contact_status: StudentStatus):
-    # todo add logics
-    return contact_status
+# @router.post("/contact_status", response_model=StudentStatus)
+# def create_contact_status(contact_status: StudentStatus):
+#     # todo add logics
+#     return contact_status
 
 @router.get("/student", response_model=list[Student])
 def get_students(contact_id: int = None):
@@ -71,6 +71,37 @@ def post_students(student: Student):
     student = Student(**st)
     logger.debug(f'result = {student}')
     return student
+
+@router.patch("/student/{id}", response_model=Student)
+def patch_students(id: str, student: Student):
+    student = student.model_dump()
+    del student['id']
+    student["updated"] = datetime.datetime.utcnow()
+    student = delete_null(student)
+    sql = f"UPDATE i_student SET "
+    adds = []
+    for k, v in student.items():
+        add_sql = ''
+        add_sql += ' ' + k + ' = '
+        if type(v) in (int, float):
+            add_sql += str(v)
+        elif type(v) in (datetime.datetime,):
+            add_sql += f'Cast(\'{v.isoformat()}\' AS DateTime)'
+        else:
+            add_sql += f'\'{str(v)}\''
+        adds.append(add_sql)
+    sql += ','.join(adds)
+    sql += f' WHERE id = \'{id}\''
+    logger.debug(f'sql = {sql}')
+    result = db.execute_query(sql)
+    sql = f'SELECT * FROM i_student WHERE id = \'{id}\''
+    st = db.execute_query(sql)[0].rows[0]
+    logger.info(f'st = {st}')
+    st = delete_null(st)
+    student = Student(**st)
+    logger.debug(f'result = {student}')
+    return student
+
 
 
 @router.get("/contact", response_model=list[Contact])
