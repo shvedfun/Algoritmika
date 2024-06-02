@@ -25,12 +25,15 @@ class Student(BaseModel):
 
 class Contact(BaseModel):
     id: int | None
-    updated: datetime
-    first_name: str
-    last_name: str
-    middle_name: str
-    telephone: str
-    email: str
+    amo_id: int | None = None
+    updated: datetime = None
+    created: datetime = None
+    name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    middle_name: str | None = None
+    phone: str
+    email: str = None
     status: ContactStatusEnum = ContactStatusEnum.cold
 
 

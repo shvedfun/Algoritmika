@@ -1,12 +1,16 @@
+import datetime
 import logging
 
+
 import ydb
+from api.public.algv2.models import Contact
+from api.utils.logger import logger_config
 
 logging.getLogger('ydb').setLevel(logging.INFO)
+logger = logger_config(__name__)
 
 
 class DBProvider:
-
   def __init__(self) -> None:
     self.__driver = ydb.Driver(
         endpoint='grpcs://ydb.serverless.yandexcloud.net:2135',
@@ -34,6 +38,24 @@ class DBProvider:
     print(self.execute_query('select * from queue;'))
 
 db = DBProvider()
+
+
+class DBConnector:
+
+    def __init__(self, db: DBProvider):
+        self.db = db
+
+    def upsert_contact_from_amo(self, contact_amo):
+        c = Contact(**contact_amo)
+        c.amo_id = c.id
+        c.created = datetime.datetime.utcnow().isoformat()
+        # c.id = str(uuid.uuid4())
+        sql = f'UPSERT INTO i_contact (id, amo_id, name, first_name, last_name, phone, created) VALUES ' \
+              f'({c.id}, {c.amo_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime))'
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)
+
+db_connector = DBConnector(db=db)
 
 if __name__ == '__main__':
   DBProvider().test()
