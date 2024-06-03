@@ -5,7 +5,7 @@ from uuid import UUID
 
 
 class ContactStatusEnum(str, Enum):
-    cold = 'cold'
+    cold = 'cold' #first contact
     wip_ai = 'wip_ai'
     cancel = 'cncl'
     done = 'done'
@@ -74,3 +74,8 @@ class Message(BaseModel):
     created: datetime
     contact_id: int
 
+class FAQ(BaseModel):
+    id: int | None
+    question: str
+    answer: str
+    school_id: int | None = None

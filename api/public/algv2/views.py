@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from api.db_utils import db
 from api.utils.logger import logger_config
-from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message
+from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message, FAQ
 
 router = APIRouter()
 
@@ -103,7 +103,6 @@ def patch_students(id: str, student: Student):
     return student
 
 
-
 @router.get("/contact", response_model=list[Contact])
 def get_contacts():
     sql = 'SELECT * FROM i_contact'
@@ -153,54 +152,11 @@ def get_group(school_id: int, course_id: int = None):
         results.append(Group(**r))
     return result
 
-# @router.post("/contact", response_model=ContactRead)
-# def create_a_contact(contact: ContactCreate, db: Session = Depends(get_session)):
-#     return create_contact(contact=contact, db=db)
-#
-#
-# @router.get("/contact", response_model=list[ContactRead])
-# def get_contactes(
-#     offset: int = 0,
-#     limit: int = Query(default=100, lte=100),
-#     db: Session = Depends(get_session),
-# ):
-#     return read_contacts(offset=offset, limit=limit, db=db)
-#
-#
-# @router.get("/contact/{contact_id}", response_model=ContactRead)
-# def get_a_contact(contact_id: int, db: Session = Depends(get_session)):
-#     return read_contact(contact_id=contact_id, db=db)
-#
-#
-# @router.get("/contact/{contact_id}/html", response_class=HTMLResponse)
-# def get_a_contact_html(request: Request, contact_id: int, db: Session = Depends(get_session)):
-#     contact =  read_contact(contact_id=contact_id, db=db)
-#     print(f'contact = {contact.dict()}')
-#     contacts_sql = select(Contact)
-#     contacts = db.exec(contacts_sql)
-#     return templates.TemplateResponse(
-#         request=request,
-#         name='contact.html',
-#         context={"contact": contact, "id": contact_id, "results": contacts},
-#     )
-#
-#
-# @router.get("/message/html", response_class=HTMLResponse)
-# def get_messages(
-#         request:Request, offset: int = 0, limit: int = Query(default=100, lte=100), db: Session = Depends(get_session),
-# ):
-#     messages = db.exec(select(Message, Contact).join(Contact).offset(offset).limit(limit).order_by(desc(Message.id))).all()
-#     contacts = db.exec(select(Contact)).fetchall()
-#     return templates.TemplateResponse(
-#         request=request, name="messages.html", context={"messages": messages, "contacts": contacts}
-#     )
-#
-#
-# @router.patch("/contact/{contact_id}", response_model=ContactRead)
-# def update_a_contact(contact_id: int, contact: ContactUpdate, db: Session = Depends(get_session)):
-#     return update_contact(contact_id=contact_id, contact=contact, db=db)
-#
-
-# @router.delete("/{contact_id}")
-# def delete_a_contact(contact_id: int, db: Session = Depends(get_session)):
-#     return delete_contact(contact_id=contact_id, db=db)
+@router.get("/faq", response_model=list[FAQ])
+def get_faq(school_id: int = None):
+    sql = f'SELECT * FROM i_faq'
+    result = db.execute_query(sql)[0].rows
+    results = []
+    for r in result:
+        results.append(FAQ(**r))
+    return result
