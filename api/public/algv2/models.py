@@ -56,6 +56,8 @@ class Course(BaseModel):
     id: int | None
     name: str
     description: str
+    age_from: int | None
+    age_to: int | None
 
 
 class Group(BaseModel):
@@ -67,12 +69,21 @@ class Group(BaseModel):
     capacity: int
 
 
+class Booking(BaseModel):
+    student_id: str
+    group_id: int
+    status: str = None
+    created: datetime = None
+    updated: datetime = None
+
+
 class Message(BaseModel):
     id: str | None
     text: str
     ai_id: str | None
     created: datetime
     contact_id: int
+
 
 class FAQ(BaseModel):
     id: int | None

@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from api.db_utils import db
 from api.utils.logger import logger_config
-from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message, FAQ
+from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message, FAQ, Booking
 
 router = APIRouter()
 
@@ -101,6 +101,31 @@ def patch_students(id: str, student: Student):
     student = Student(**st)
     logger.debug(f'result = {student}')
     return student
+
+
+@router.get('/booking', response_model=list[Booking])
+def get_booking(student_id: str = None, group_id: int = None):
+    sql = 'SELECT * FROM i_booking'
+    result = db.execute_query(sql)[0].rows
+    results = []
+    for r in result:
+        r = delete_null(r)
+        results.append(Booking(**r))
+    return results
+
+@router.post("/booking", response_model=Booking)
+def new_booking(bk: Booking):
+    # exists_capacity = get_group_capacity_exists(group_id)
+    tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+    if not bk.created:
+        bk.created = tst
+    bk.updated = tst
+    sql = f'UPSERT INTO i_booking (student_id, group_id, status, created, updated) VAlUES ' \
+        f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
+          f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
+    logger.debug(f'sql = {sql}')
+    db.execute_query(sql)
+    return bk
 
 
 @router.get("/contact", response_model=list[Contact])
