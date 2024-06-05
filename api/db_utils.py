@@ -40,7 +40,7 @@ class DBProvider:
 db = DBProvider()
 
 
-class DBConnector:
+class DBExecutor:
 
     def __init__(self, db: DBProvider):
         self.db = db
@@ -55,7 +55,18 @@ class DBConnector:
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)
 
-db_connector = DBConnector(db=db)
+    def get_group(self, id):
+        sql = f'SELECT * FROM i_group WHERE id = {id}'
+        result = self.db.execute_query(sql)[0].rows
+        return result[0] if result else result
+
+    def get_number_booking(self, group_id):
+        sql = f'SELECT COUNT(*) FROM i_booking WHERE group_id = {group_id}'
+        result = self.db.execute_query(sql)[0].rows
+        return result[0][0] if result else -1
+
+db_connector = DBExecutor(db=db)
+
 
 if __name__ == '__main__':
   DBProvider().test()

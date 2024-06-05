@@ -68,11 +68,17 @@ class Group(BaseModel):
     teacher: str
     capacity: int
 
+class BookingStatusEnum(str, Enum):
+    ok = 'ok' #first contact
+    rjct = 'reject_full'
+    wait = 'wait'
+
 
 class Booking(BaseModel):
     student_id: str
     group_id: int
     status: str = None
+    trial: bool = True
     created: datetime = None
     updated: datetime = None
 

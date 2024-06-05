@@ -1,14 +1,17 @@
 import datetime
+import http.client
 from uuid import UUID, uuid4
-from fastapi import APIRouter, Depends, Query, Request, Form, BackgroundTasks
+from typing import Union
+from fastapi import APIRouter, Depends, Query, Request, Form, BackgroundTasks, HTTPException, Response
 from sqlmodel import Session, select, desc
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from api.db_utils import db
+from api.db_utils import db, db_connector
 from api.utils.logger import logger_config
-from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, Message, FAQ, Booking
+from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
+    Message, FAQ, Booking, BookingStatusEnum
 
 router = APIRouter()
 
@@ -113,13 +116,26 @@ def get_booking(student_id: str = None, group_id: int = None):
         results.append(Booking(**r))
     return results
 
-@router.post("/booking", response_model=Booking)
-def new_booking(bk: Booking):
+@router.post("/booking", response_model=Union[Booking, dict])
+def new_booking(bk: Booking, response: Response):
     # exists_capacity = get_group_capacity_exists(group_id)
     tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
     if not bk.created:
         bk.created = tst
     bk.updated = tst
+    group = db_connector.get_group(bk.group_id)
+    logger.debug(f'group = {group}')
+    if not group:
+        response.status_code = http.client.NOT_ACCEPTABLE
+        return bk
+    n_book = db_connector.get_number_booking(bk.group_id)
+    logger.debug(f'n_book = {n_book}')
+    if n_book < group.get('capacity', -1):
+        bk.status = BookingStatusEnum.ok
+    else:
+        response.status_code = http.client.NOT_ACCEPTABLE
+        bk.status = BookingStatusEnum.rjct
+        return bk
     sql = f'UPSERT INTO i_booking (student_id, group_id, status, created, updated) VAlUES ' \
         f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
           f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
