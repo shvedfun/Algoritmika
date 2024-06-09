@@ -143,6 +143,22 @@ def new_booking(bk: Booking, response: Response):
     db.execute_query(sql)
     return bk
 
+# @router.patch("/booking", response_model=Union[Booking, dict])
+# def patch_booking(bk: Booking, response: Response):
+#     # exists_capacity = get_group_capacity_exists(group_id)
+#     tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+#     if not bk.created:
+#         bk.created = tst
+#     bk.updated = tst
+#     group = db_connector.get_group(bk.group_id)
+#     logger.debug(f'group = {group}')
+#     sql = f'UPDATE INTO i_booking (student_id, group_id, status, created, updated) VAlUES ' \
+#         f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
+#           f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
+#     logger.debug(f'sql = {sql}')
+#     db.execute_query(sql)
+#     return bk
+
 
 @router.get("/contact", response_model=list[Contact])
 def get_contacts():
