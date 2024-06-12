@@ -6,14 +6,14 @@ from fastapi import FastAPI
 from api.config import Settings
 # from api.database import create_db_and_tables
 from api.public import api as public_api
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 from api.utils.mock_data_generator import create_heroes_and_teams
-from api.db_utils import DBProvider
-from api.ydatabase import create_tables
+from api.ydb_utils import DBProvider
+from api.ydatabase4del import create_tables
 from fastapi.middleware.cors import CORSMiddleware
 from api.background import BackgroundManager
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager

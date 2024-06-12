@@ -1,4 +1,4 @@
-from api.db_utils import DBProvider
+from api.ydb_utils import DBProvider
 
 
 def create_tables(db: DBProvider):

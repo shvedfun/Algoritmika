@@ -8,14 +8,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from api.db_utils import db, db_connector
-from api.utils.logger import logger_config
+from api.ydb_utils import db, db_executor
+from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
 
 router = APIRouter()
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 def delete_null(r: dict):
     for k, v in r.copy().items():
@@ -75,6 +75,7 @@ def post_students(student: Student):
     logger.debug(f'result = {student}')
     return student
 
+
 @router.patch("/student/{id}", response_model=Student)
 def patch_students(id: str, student: Student):
     student = student.model_dump()
@@ -116,6 +117,7 @@ def get_booking(student_id: str = None, group_id: int = None):
         results.append(Booking(**r))
     return results
 
+
 @router.post("/booking", response_model=Union[Booking, dict])
 def new_booking(bk: Booking, response: Response):
     # exists_capacity = get_group_capacity_exists(group_id)
@@ -123,12 +125,12 @@ def new_booking(bk: Booking, response: Response):
     if not bk.created:
         bk.created = tst
     bk.updated = tst
-    group = db_connector.get_group(bk.group_id)
+    group = db_executor.get_group(bk.group_id)
     logger.debug(f'group = {group}')
     if not group:
         response.status_code = http.client.NOT_ACCEPTABLE
         return bk
-    n_book = db_connector.get_number_booking(bk.group_id)
+    n_book = db_executor.get_number_booking(bk.group_id)
     logger.debug(f'n_book = {n_book}')
     if n_book < group.get('capacity', -1):
         bk.status = BookingStatusEnum.ok

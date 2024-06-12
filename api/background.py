@@ -3,10 +3,11 @@ import json
 
 from amo_utils.client import AMOClient
 from ai_utils.client import AIClient
-from api.utils.logger import logger_config
-from api.db_utils import db_connector
+from api.utils.logger import get_logger
+from api.ydb_utils import db_executor
+from api.config import settings
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 class BackgroundManager:
@@ -24,10 +25,10 @@ class BackgroundManager:
         self.sleep_contact2ai_message = sleep_contact2ai_message
         self.sleep_ai2contact_message = sleep_ai2contact_message
         self.amo_client = amo_client or AMOClient(
-            url_prefix='turboaiagency',
-            long_token="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjRiYjkxMTVhYTNmYmI5OWYzNTcxYTM2M2ViMzdkNDJlOTEyNDk4YWZjOWJiZTdhMTQ2MWU1NjhmNjhiMjRiNzVhMzYyNDMwYjE2ZDg1M2VmIn0.eyJhdWQiOiI1OGI5NTliMi0wZjFiLTRkZTAtYmQ0ZS0wOTA0M2Y0NmNlMjIiLCJqdGkiOiI0YmI5MTE1YWEzZmJiOTlmMzU3MWEzNjNlYjM3ZDQyZTkxMjQ5OGFmYzliYmU3YTE0NjFlNTY4ZjY4YjI0Yjc1YTM2MjQzMGIxNmQ4NTNlZiIsImlhdCI6MTcxNzIyNzA4MywibmJmIjoxNzE3MjI3MDgzLCJleHAiOjE3NDg3MzYwMDAsInN1YiI6IjExMDQ0NTc4IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxNzQ4NzU0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiOWZkZGU3N2UtNjEzOS00OTIxLWI4ODMtODcxODBiOWFiZDQzIn0.KAbmdEhQ6u-5znl3YagjiUv3_6NEo8-G1dg6D_vVOs9BV1OG9g3E3I9wdrFVyvZQtvwe0PLsYdG5yFGhcYLuUr5yB9UHTE6ozBmw4OSeiko0JhHVi4MWHiL5irZrzjxc1kcyFU0LEoKe264iWPZxRoYwVCdLiK0Dw2l7hLiake9pLZ4JuaOF5BG4qrMwvSHc82bYifAAhCNsmhXFFGE7AjjxUxLNnrN6G0kv-1gsF6TKXOmIM-UAEI8M1dqpqJdAm8lEiVY8LfAb45sWEBa96eCoL3SvluhoV1usQbDeJnv9hvr0anzJTAAeVK3Cf3I8KjzWKCrugGLeidM5zysnRg"
+            url_prefix= settings.AMO_URL,
+            long_token= settings.AMO_TOKEN,
         )
-        self.aiclient = ai_client or AIClient(url_prefix='', long_token='')
+        self.aiclient = ai_client or AIClient(url='', token='')
 
     async def run(self):
         count = 1
@@ -56,7 +57,7 @@ class BackgroundManager:
                     validated_contact = self.amo_client.get_validated_contact(contact)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
-                        db_connector.upsert_contact_from_amo(validated_contact)
+                        db_executor.upsert_contact_from_amo(validated_contact)
                         new_pipeline_id = self.amo_client.pipelines['AI']
                         new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
                         data_patch_leads = [{'id': lead['id'],

@@ -3,9 +3,9 @@ from sqlmodel import Session
 from api.database import engine
 from api.public.hero.models import Hero
 from api.public.team.models import Team
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 def create_heroes_and_teams():

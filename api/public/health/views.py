@@ -4,10 +4,10 @@ from sqlmodel import Session
 from api.database import Session, get_session
 from api.public.health.crud import get_health, get_stats
 from api.public.health.models import Health, Stats
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 
 router = APIRouter()
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 @router.get(

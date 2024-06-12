@@ -1,19 +1,20 @@
 import http
 import json
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 from aiohttp import ClientSession
 from api.public.algv2.models import Contact
+from api.config import Settings
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 TEST = True
 
 class AIClientData:
-    base_url = ".turboagency.ru"
     suffics = {
-        "leads": "/api/v4/leads",
-        "pipelines": "/api/v4/leads/pipelines",
-        "contacts": "/api/v4/contacts",
+        "leads": "/api/leads",
+        "pipelines": "/api/leads/pipelines",
+        "contacts": "/api/contacts",
+        "message": "/api/message",
     }
 
 
@@ -34,9 +35,9 @@ class AIClientStatic:
 
 class AIClient(AIClientData, AIClientStatic):
 
-    def __init__(self, url_prefix, long_token):
-        self.url = "https://" + url_prefix + self.base_url
-        self.token = long_token
+    def __init__(self, url, token):
+        self.url = url
+        self.token = token
 
     def _prepare_url(self, suffics_key, id=None):
         url = self.url + self.suffics[suffics_key]
@@ -88,3 +89,12 @@ class AIClient(AIClientData, AIClientStatic):
         url = self._prepare_url('contact')
         status, result = await self._request_post(url, contact.model_dump())
         return result
+
+    async def send_message2ai(self, contact_id: int, message: str) -> dict:
+        url = self._prepare_url('send_message')
+        status, result = await self._request_post(url, contact.model_dump())
+        return result
+
+
+def get_ai_client():
+    return AIClient(Settings.AI_URL, Settings.AI_TOKEN)

@@ -4,10 +4,10 @@ import logging
 
 import ydb
 from api.public.algv2.models import Contact
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 
 logging.getLogger('ydb').setLevel(logging.INFO)
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 class DBProvider:
@@ -65,7 +65,13 @@ class DBExecutor:
         result = self.db.execute_query(sql)[0].rows
         return result[0][0] if result else -1
 
-db_connector = DBExecutor(db=db)
+    def get_contact_id_by_phone(self, phone):
+        sql = f'SELECT id FROM i_client WHERE phone = {phone} order by id desc'
+        result = self.db.execute_query(sql)[0].rows
+        return result[0][0] if result else None
+
+
+db_executor = DBExecutor(db=db)
 
 
 if __name__ == '__main__':

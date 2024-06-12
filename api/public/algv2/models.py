@@ -96,3 +96,12 @@ class FAQ(BaseModel):
     question: str
     answer: str
     school_id: int | None = None
+
+class WhatCrmMessage(BaseModel):
+    message: dict = None
+
+    def get_phone(self):
+        return "1234567890"
+
+    def get_text(self):
+        return "Проверочный текст"

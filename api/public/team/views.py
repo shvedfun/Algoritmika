@@ -10,11 +10,11 @@ from api.public.team.crud import (
     update_team,
 )
 from api.public.team.models import TeamCreate, TeamRead, TeamUpdate
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 
 router = APIRouter()
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 @router.post("", response_model=TeamRead)

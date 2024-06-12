@@ -1,10 +1,10 @@
 import http
 import json
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 from aiohttp import ClientSession
 import requests
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 class AMOClientData:

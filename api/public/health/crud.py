@@ -5,9 +5,9 @@ from api.config import settings
 from api.database import get_session
 from api.public.health.models import Health, Stats, Status
 from api.public.hero.crud import read_heroes
-from api.utils.logger import logger_config
+from api.utils.logger import get_logger
 
-logger = logger_config(__name__)
+logger = get_logger(__name__)
 
 
 def get_health(db: Session) -> Health:
