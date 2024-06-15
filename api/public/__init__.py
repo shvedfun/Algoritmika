@@ -6,7 +6,7 @@ from api.auth import authent
 # from api.public.team import views as teams
 from api.public.alg import views as algv1
 from api.public.algv2 import views as algv2
-from api.public.algv2 import whatcrm
+from api.public.algv2 import whatcrm_view, wazzup_view
 
 api = APIRouter()
 
@@ -42,8 +42,14 @@ api.include_router(
     # dependencies=[Depends(authent)]
 )
 api.include_router(
-    whatcrm.router,
+    whatcrm_view.router,
     prefix='/api/v1/whatcrm',
     tags=["WhatCRM"],
+    # dependencies=[Depends(authent)]
+)
+api.include_router(
+    wazzup_view.router,
+    prefix='/api/v1/wazzup',
+    tags=["Wazzup"],
     # dependencies=[Depends(authent)]
 )

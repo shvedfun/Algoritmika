@@ -109,8 +109,7 @@ def patch_students(id: str, student: Student):
 
 @router.get('/booking', response_model=list[Booking])
 def get_booking(student_id: str = None, group_id: int = None):
-    sql = 'SELECT * FROM i_booking'
-    result = db.execute_query(sql)[0].rows
+    result = db_executor.get_booking(student_id, group_id)
     results = []
     for r in result:
         r = delete_null(r)
@@ -138,11 +137,7 @@ def new_booking(bk: Booking, response: Response):
         response.status_code = http.client.NOT_ACCEPTABLE
         bk.status = BookingStatusEnum.rjct
         return bk
-    sql = f'UPSERT INTO i_booking (student_id, group_id, status, created, updated) VAlUES ' \
-        f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
-          f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
-    logger.debug(f'sql = {sql}')
-    db.execute_query(sql)
+    db_executor.upsert_booking(bk)
     return bk
 
 # @router.patch("/booking", response_model=Union[Booking, dict])
@@ -163,10 +158,8 @@ def new_booking(bk: Booking, response: Response):
 
 
 @router.get("/contact", response_model=list[Contact])
-def get_contacts():
-    sql = 'SELECT * FROM i_contact'
-    # sql += ' ORDER BY "id"'
-    result = db.execute_query(sql)[0].rows
+def get_contacts(contact_id: int = None):
+    result = db_executor.get_contact(contact_id)
     logger.debug(f'result = {result}')
     results = []
     for r in result:
