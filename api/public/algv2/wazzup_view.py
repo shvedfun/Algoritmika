@@ -1,28 +1,25 @@
 import http.client
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, BackgroundTasks
 from api.utils.logger import get_logger
+from api.wazzup.wazzup_utils import WazzupUtils
+from api.public.algv2.models import PhoneMessage
+from api.utils.messages_utils import MessagesUtils
 
 
 router = APIRouter()
 
 logger = get_logger(__name__)
 
-from ai_utils.client import get_ai_client
+
 
 @router.post("/webhook")
-async def handle_webhook(wazzup_data: dict, response: Response):
+async def handle_webhook(wazzup_data: dict, response: Response, background_tasks: BackgroundTasks):
     logger.debug(f'body = {wazzup_data}')
-    # if not wcrm_data.message:
-    #     response.status_code = http.HTTPStatus.OK
-    #     return
-    # phone = wcrm_data.get_phone()
-    # text = wcrm_data.get_text()
-    # contact_id = db_executor.get_contact_id_by_phone(phone)
-    # if contact_id is None:
-    #     logger.warning(f'Не нашел контакт с телефоном {phone}')
-    #     return
-    #
-    # await get_ai_client().send_message2ai(contact_id, text)
+    phone_messages: list[PhoneMessage] = WazzupUtils.handle_message_from_hook(wazzup_data)
+    if phone_messages:
+        logger.debug(f'phone_messages = {phone_messages}')
+        logger.debug(f'phone_messages = {phone_messages}')
+        background_tasks.add_task(MessagesUtils.handle_messages_from_client, phone_messages)
     response.body = wazzup_data
     response.status_code = http.HTTPStatus.OK
     return

@@ -4,8 +4,6 @@ from typing import Optional
 from sqlmodel import Field, Relationship, SQLModel, Column, CheckConstraint, TIMESTAMP, ForeignKey
 import sqlalchemy as sa
 
-from api.public.team.models import Team
-from api.utils.generic_models import HeroTeamLink
 
 
 class ContactBase(SQLModel):

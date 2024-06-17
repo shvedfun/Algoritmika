@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from enum import Enum, IntEnum
-from uuid import UUID
+from uuid import uuid4
 
 
 class ContactStatusEnum(str, Enum):
@@ -84,12 +84,16 @@ class Booking(BaseModel):
 
 
 class Message(BaseModel):
-    id: str | None
+    id: str | None = str(uuid4())
     text: str
     ai_id: str | None
-    created: datetime
+    created: datetime = datetime.now(tz=timezone.utc)
     contact_id: int
 
+class PhoneMessage(BaseModel):
+    text: str
+    created: datetime
+    phone: str
 
 class FAQ(BaseModel):
     id: int | None

@@ -3,7 +3,7 @@ import json
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
 from api.public.algv2.models import Contact
-from api.config import Settings
+from api.config import settings
 
 logger = get_logger(__name__)
 
@@ -73,6 +73,7 @@ class AIClient(AIClientData, AIClientStatic):
         result = {}
         headers = self._get_headers()
         json_data = json.dumps(data)
+        json_data = bytes(json_data, encoding='utf-8')
         async with ClientSession(headers=headers) as session:
             async with session.post(url=url, json=json_data,**kwargs) as response:
                 result = await response.read()
@@ -91,10 +92,12 @@ class AIClient(AIClientData, AIClientStatic):
         return result
 
     async def send_message2ai(self, contact_id: int, message: str) -> dict:
-        url = self._prepare_url('send_message')
-        status, result = await self._request_post(url, contact.model_dump())
+        url = self._prepare_url('message')
+        logger.debug(f'url = {url}')
+        status, result = await self._request_post(url, data={"message": message, "contact_id": contact_id})
+        logger.debug(f'status = {status}, result = {result}')
         return result
 
 
 def get_ai_client():
-    return AIClient(Settings.AI_URL, Settings.AI_TOKEN)
+    return AIClient(settings.AI_URL, settings.AI_TOKEN)

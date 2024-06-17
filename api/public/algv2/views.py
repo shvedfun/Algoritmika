@@ -12,6 +12,7 @@ from api.ydb_utils import db, db_executor
 from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
+from api.utils.messages_utils import MessagesUtils
 
 router = APIRouter()
 
@@ -27,16 +28,9 @@ def test_back_task():
     pass
 
 @router.post("/message", response_model=Message)
-def create_message(ms: Message, back_task: BackgroundTasks=None): #
-    ms.id = str(uuid4())
-    # ms.created = datetime.datetime.now(tz=datetime.timezone.utc)
-    sql = f'INSERT INTO i_message (id, text, ai_id, contact_id, created) VALUES (\'{ms.id}\', \'{ms.text}\', \'{ms.ai_id}\', {ms.contact_id}, CAST(\'{ms.created.isoformat()}\' AS Timestamp))'
-    result = db.execute_query(sql)
-    sql = f'SELECT * FROM i_message WHERE id = \'{ms.id}\''
-    result = db.execute_query(sql)[0].rows[0]
-    result['created'] = datetime.datetime.fromtimestamp(result['created']/10**6)
-    result = Message(**result)
-    return result # RedirectResponse("/message/html")
+def create_message(ms: Message, background_tasks: BackgroundTasks): #
+    background_tasks.add_task(MessagesUtils.handle_message_from_ai, [ms,])
+    return ms
 
 
 # @router.post("/contact_status", response_model=StudentStatus)

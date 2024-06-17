@@ -7,7 +7,6 @@ from api.config import Settings
 # from api.database import create_db_and_tables
 from api.public import api as public_api
 from api.utils.logger import get_logger
-from api.utils.mock_data_generator import create_heroes_and_teams
 from api.ydb_utils import DBProvider
 from api.ydatabase4del import create_tables
 from fastapi.middleware.cors import CORSMiddleware

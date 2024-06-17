@@ -1,9 +1,10 @@
 import datetime
 import logging
+import uuid
 
 
 import ydb
-from api.public.algv2.models import Contact, Booking
+from api.public.algv2.models import Contact, Booking, Message
 from api.utils.logger import get_logger
 
 logging.getLogger('ydb').setLevel(logging.INFO)
@@ -20,20 +21,18 @@ class DBProvider:
         credentials=ydb.iam.ServiceAccountCredentials.from_file('creds/algo-service-account authorized key.json'),
     )
 
-  def __execute_query(self, session, query, params):
-    logger.debug(f'params = {params}')
+  def __execute_query(self, session, query):
     return session.transaction().execute(
         query,
-        params,
         commit_tx=True,
         settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2),
     )
 
-  def execute_query(self, query, params=None):
+  def execute_query(self, query):
     self.__driver.wait(fail_fast=True, timeout=5)
     with ydb.SessionPool(self.__driver) as pool:
       result = pool.retry_operation_sync(
-          lambda x: self.__execute_query(x, query, params=params))
+          lambda x: self.__execute_query(x, query))
     return result
 
   def test(self):
@@ -82,25 +81,43 @@ class DBExecutor:
     def get_booking(self, student_id: str = None, group_id: int = None):
         sql = 'SELECT * FROM i_booking WHERE 1=1'
         if student_id:
-            sql += f' AND student_id={student_id}'
+            sql += f' AND student_id= \'{student_id}\''
         if group_id:
             sql += f' AND group_id={group_id}'
-        sql += ' ORDER BY id'
+        # sql += ' ORDER BY id'
+        logger.debug(f'sql = sql')
         result = db.execute_query(sql)[0].rows
         return result
 
-    def get_contact(self, contact_id):
-        logger.debug(f'contact_id = {contact_id}')
+    def get_contact(self, contact_id=None, phone: str=""):
+        logger.debug(f'contact_id = {contact_id}, phone = {phone}')
+        params = {}
         sql = """
-        DECLARE $contact_id AS Uint64;
-        
         SELECT * FROM i_contact WHERE 1=1
         """
         if contact_id:
+            params['contact_id'] = contact_id
             sql += f' AND id = {contact_id}'
-        result = db.execute_query(sql, params={'$contact_id': contact_id})[0].rows
+        if phone:
+            sql += f' AND phone = \'{phone}\''
+        # sql += " ORDER BY created"
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)[0].rows
+        logger.debug(f'contact_result = {result}')
         return result
-    
+
+    def insert_message(self, ms: Message):
+        if not ms.id:
+            ms.id = str(uuid.uuid4())
+        # ms.created = datetime.datetime.now(tz=datetime.timezone.utc)
+        sql = f'INSERT INTO i_message (id, text, ai_id, contact_id, created) VALUES (\'{ms.id}\', \'{ms.text}\', \'{ms.ai_id}\', {ms.contact_id}, CAST({int(ms.created.timestamp() * 10**6)} AS Timestamp))'
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)
+        sql = f'SELECT * FROM i_message WHERE id = \'{ms.id}\''
+        result = db.execute_query(sql)[0].rows[0]
+        result['created'] = (result['created']// 10**6)
+        result = Message(**result)
+        return result
 
 
 db_executor = DBExecutor(db=db)
