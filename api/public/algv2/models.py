@@ -77,13 +77,14 @@ class BookingStatusEnum(str, Enum):
 
 
 class Booking(BaseModel):
-    contact_id: int
-    student_id: str
+    contact_id: int | None = None
+    student_id: str | None = None
     group_id: int
     status: str = None
     trial: bool = True
     created: datetime = None
     updated: datetime = None
+    embedded: dict | None = None
 
 
 class Message(BaseModel):

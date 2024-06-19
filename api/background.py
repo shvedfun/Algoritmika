@@ -18,7 +18,7 @@ class BackgroundManager:
             sleep_time:int = 1,
             sleep_contact2ai_message: int = 15,
             sleep_ai2contact_message: int = 20,
-            sleep_new_contact: int = 5
+            sleep_new_contact: int = 60
     ) -> None:
         self.sleep_time = sleep_time
         self.sleep_new_contact = sleep_new_contact
@@ -34,9 +34,11 @@ class BackgroundManager:
         count = 1
         while True:
             if count % self.sleep_contact2ai_message == 0:
-                await self.do_contact2ai_message()
+                pass
+                # await self.do_contact2ai_message()
             if count % self.sleep_ai2contact_message == 0:
-                await self.do_ai2contact_message()
+                pass
+                # await self.do_ai2contact_message()
             if count % self.sleep_new_contact == 0:
                 await self.do_new_lead()
             await asyncio.sleep(self.sleep_time)
@@ -45,7 +47,8 @@ class BackgroundManager:
     async def do_new_lead(self):
         pipelile_id = AMOClient.pipelines.get('default')
         result = await self.amo_client.get_leads(pipeline_id=pipelile_id)
-        logger.debug(f'result = {result}')
+        if result:
+            logger.debug(f'result get leads = {result}')
         leads = self.amo_client.get_leads_from_response(result)
         for lead in leads:
             if lead.get('status_id', 0) == self.amo_client.pipelines_statuses[pipelile_id]["Первичный контакт"]:
@@ -68,7 +71,7 @@ class BackgroundManager:
                                             ]
                         logger.debug(f'data_patch_leads = {data_patch_leads}')
                         result = await self.amo_client.patch_leads(json_data=data_patch_leads)
-                        logger.debug(f'result = {result}')
+                        # logger.debug(f'result = {result}')
                         ai_result = await self.aiclient.send_newcontact2ai(validated_contact)
 
                     else:
@@ -82,7 +85,8 @@ class BackgroundManager:
                         result = await self.amo_client.patch_leads(json_data=data_patch_leads)
                         # move_lead_
 
-        logger.info(f'do_new_contact result = {result}')
+        if result:
+            logger.info(f'do_new_contact result = {result}')
         return result
 
     async def do_contact2ai_message(self):

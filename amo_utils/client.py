@@ -139,9 +139,9 @@ class AMOClient(AMOClientData, AMOClientStatic):
         kwargs['params'] |= {'with': 'contacts'}
         if pipeline_id:
             kwargs['params'] |= {'filter[pipeline_id]': pipeline_id}
-        logger.debug(f'kwargs = {kwargs}')
+        # logger.debug(f'kwargs = {kwargs}')
         status, result = await self._request_get(suffics_name="leads", **kwargs)
-        logger.debug(f'status = {status}')
+        # logger.debug(f'status = {status}')
         return result
 
     async def patch_leads(self, json_data, **kwargs):
