@@ -18,8 +18,7 @@ class MessagesUtils:
         for phone_message in phone_messages:
             contact: list[Contact] = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
             if contact:
-                contact = contact[0]
-                message = Message(contact_id=contact.id, text=phone_message.text,
+                message = Message(contact_id=contact, text=phone_message.text,
                                   created=phone_message.created,
                                   ai_id="",)
                 try:
@@ -39,6 +38,7 @@ class MessagesUtils:
                 phone = contact.phone
                 text = message.text
                 phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
+                logger.debug(f'send message 2 wazzup {phone_message}')
                 status = await wazzup_client.send_message(phone_message)
 
                 if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):

@@ -17,27 +17,28 @@ class WazzupUtils:
     def handle_message_from_hook(body_hook: dict) -> list[PhoneMessage]:
         results = []
         for message in body_hook.get('messages', []):
-            tst = None
-            text = message.get('text') if message.get('text') else message.get("_data", {}).get("body", "")
-            phone = message.get("chatId").replace("@c.us", "")
-            try:
-                dt = message.get('dateTime')
-                if isinstance(dt, str):
-                    dt = dt[:19]
-                    logger.debug(f'dt = {dt}')
-                    try:
-                        tst = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
-                    except Exception as e:
-                        logger.error(f'Error {e} {traceback.format_exc()}')
-                        tst = None
-                if not tst:
-                    tst = datetime.datetime.fromtimestamp(message.get("timestamp")) if message.get("timestamp") else None
-            except Exception as e:
-                logger.error(f'Error {e} {traceback.format_exc()}')
+            if message.get('status') == 'inbound':
                 tst = None
-            if phone and text and tst:
-                new_message = PhoneMessage(text=text, phone=phone, created=tst)
-                results.append(new_message)
+                text = message.get('text') if message.get('text') else message.get("_data", {}).get("body", "")
+                phone = message.get("chatId").replace("@c.us", "")
+                try:
+                    dt = message.get('dateTime')
+                    if isinstance(dt, str):
+                        dt = dt[:19]
+                        logger.debug(f'dt = {dt}')
+                        try:
+                            tst = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+                        except Exception as e:
+                            logger.error(f'Error {e} {traceback.format_exc()}')
+                            tst = None
+                    if not tst:
+                        tst = datetime.datetime.fromtimestamp(message.get("timestamp")) if message.get("timestamp") else None
+                except Exception as e:
+                    logger.error(f'Error {e} {traceback.format_exc()}')
+                    tst = None
+                if phone and text and tst:
+                    new_message = PhoneMessage(text=text, phone=phone, created=tst)
+                    results.append(new_message)
         return results
 
 

@@ -29,6 +29,7 @@ def test_back_task():
 
 @router.post("/message", response_model=Message)
 def create_message(ms: Message, background_tasks: BackgroundTasks): #
+    logger.debug(f'handle message from ai {ms}')
     background_tasks.add_task(MessagesUtils.handle_message_from_ai, [ms,])
     return ms
 
