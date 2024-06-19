@@ -67,7 +67,7 @@ class DBExecutor:
         return result[0][0] if result else -1
 
     def get_contact_id_by_phone(self, phone):
-        sql = f'SELECT id FROM i_client WHERE phone = {phone} order by id desc'
+        sql = f'SELECT id FROM i_contact WHERE phone = \'{phone}\' ORDER BY id DESC'
         result = self.db.execute_query(sql)[0].rows
         return result[0][0] if result else None
 

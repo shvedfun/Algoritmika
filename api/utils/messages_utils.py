@@ -16,7 +16,7 @@ class MessagesUtils:
     async def handle_messages_from_client(phone_messages: list[PhoneMessage]):
         ai_client: AIClient = get_ai_client()
         for phone_message in phone_messages:
-            contact: list[Contact] = db_executor.get_contact(phone=phone_message.phone)
+            contact: list[Contact] = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
             if contact:
                 contact = contact[0]
                 message = Message(contact_id=contact.id, text=phone_message.text,
