@@ -14,7 +14,7 @@ class AMOClientData:
         "pipelines": "/api/v4/leads/pipelines",
         "contacts": "/api/v4/contacts",
     }
-    pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310}
+    pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310, 'Записаны': 8294854}
     pipelines_statuses = {
         8164598: {
             "Неразобранное": 66751006,
@@ -33,6 +33,10 @@ class AMOClientData:
             "Первичный контакт": 67221126,
             "Переговоры": 67221130,
             "Принимают решение": 67221134,
+        },
+        8294854: {
+            "Первичный контакт": 67655354,
+            "Успешно реализовано": 142
         }
     }
 
@@ -57,18 +61,26 @@ class AMOClientStatic:
         return result
 
     @staticmethod
-    def get_validated_contact(amo_contact: dict) -> dict:
-        ai_contact = {}
-        ai_contact['id'] = amo_contact['id']
-        ai_contact['first_name'] = amo_contact['first_name']
-        ai_contact['last_name'] = amo_contact['last_name']
-        ai_contact['name'] = amo_contact['name']
-        ai_contact['phone'] = None
+    def get_validated_contact(amo_contact: dict, lead: dict) -> dict:
+        contact = {}
+        contact['id'] = amo_contact['id']
+        contact['amo_id'] = amo_contact['id']
+        contact['amo_lead_id'] = lead['id']
+        contact['first_name'] = amo_contact['first_name']
+        contact['last_name'] = amo_contact['last_name']
+        contact['name'] = amo_contact['name']
+        contact['phone'] = None
         for cust_f in amo_contact["custom_fields_values"]:
             if cust_f.get("field_code") == "PHONE":
-                ai_contact['phone'] = cust_f.get("values")[0]['value']
-        return ai_contact
+                contact['phone'] = AMOClientStatic.clear_phone_number(cust_f.get("values")[0]['value'])
+        return contact
 
+    @staticmethod
+    def clear_phone_number(phone: str) -> str | None:
+        if type(phone) is not str:
+            return None
+        phone = phone.strip().replace("+", "").replace("-", "")
+        return phone
 
 
 class AMOClient(AMOClientData, AMOClientStatic):

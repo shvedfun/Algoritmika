@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     logger.info(f'result = {result[0].rows}')
     create_tables(db)
     background_manager = BackgroundManager()
-    # asyncio.create_task(background_manager.run())
+    asyncio.create_task(background_manager.run())
     logger.info("startup: triggered")
     yield
     logger.info("shutdown: triggered")

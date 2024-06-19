@@ -27,6 +27,7 @@ class Student(BaseModel):
 class Contact(BaseModel):
     id: int | None
     amo_id: int | None = None
+    amo_lead_id: int | None = None
     updated: datetime | None = None
     created: datetime = None
     name: str | None = None
@@ -36,6 +37,7 @@ class Contact(BaseModel):
     phone: str
     email: str = None
     status: ContactStatusEnum = ContactStatusEnum.cold
+
 
 
 class StudentStatus(BaseModel):
@@ -75,6 +77,7 @@ class BookingStatusEnum(str, Enum):
 
 
 class Booking(BaseModel):
+    contact_id: int
     student_id: str
     group_id: int
     status: str = None

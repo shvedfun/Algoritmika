@@ -132,6 +132,7 @@ def new_booking(bk: Booking, response: Response):
         bk.status = BookingStatusEnum.rjct
         return bk
     db_executor.upsert_booking(bk)
+
     return bk
 
 # @router.patch("/booking", response_model=Union[Booking, dict])

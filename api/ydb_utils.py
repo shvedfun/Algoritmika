@@ -51,8 +51,8 @@ class DBExecutor:
         c.amo_id = c.id
         c.created = datetime.datetime.utcnow().isoformat()
         # c.id = str(uuid.uuid4())
-        sql = f'UPSERT INTO i_contact (id, amo_id, name, first_name, last_name, phone, created) VALUES ' \
-              f'({c.id}, {c.amo_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime))'
+        sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created) VALUES ' \
+              f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime))'
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)
 
@@ -107,8 +107,8 @@ class DBExecutor:
         return result
 
     def insert_message(self, ms: Message):
-        if not ms.id:
-            ms.id = str(uuid.uuid4())
+        # if not ms.id:
+        ms.id = str(uuid.uuid4())
         # ms.created = datetime.datetime.now(tz=datetime.timezone.utc)
         sql = f'INSERT INTO i_message (id, text, ai_id, contact_id, created) VALUES (\'{ms.id}\', \'{ms.text}\', \'{ms.ai_id}\', {ms.contact_id}, CAST({int(ms.created.timestamp() * 10**6)} AS Timestamp))'
         logger.debug(f'sql = {sql}')

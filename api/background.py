@@ -28,7 +28,7 @@ class BackgroundManager:
             url_prefix= settings.AMO_URL,
             long_token= settings.AMO_TOKEN,
         )
-        self.aiclient = ai_client or AIClient(url='', token='')
+        self.aiclient = ai_client or AIClient(url=settings.AI_URL, token=settings.AI_TOKEN)
 
     async def run(self):
         count = 1
@@ -54,9 +54,10 @@ class BackgroundManager:
                 logger.debug(f'main_contact_id = {main_contact_id}')
                 if main_contact_id:
                     contact = await self.amo_client.get_contact(main_contact_id)
-                    validated_contact = self.amo_client.get_validated_contact(contact)
+                    validated_contact = self.amo_client.get_validated_contact(contact, lead)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
+
                         db_executor.upsert_contact_from_amo(validated_contact)
                         new_pipeline_id = self.amo_client.pipelines['AI']
                         new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]

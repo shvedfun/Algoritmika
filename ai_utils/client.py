@@ -7,13 +7,13 @@ from api.config import settings
 
 logger = get_logger(__name__)
 
-TEST = True
+TEST = False
 
 class AIClientData:
     suffics = {
         "leads": "/api/leads",
         "pipelines": "/api/leads/pipelines",
-        "contacts": "/api/contacts",
+        "contacts": "/api/contact",
         "message": "/api/message",
     }
 
@@ -23,13 +23,11 @@ class AIClientStatic:
     def get_validated_contact(amo_contact: dict) -> dict:
         ai_contact = {}
         ai_contact['id'] = amo_contact['id']
-        ai_contact['first_name'] = amo_contact['first_name']
-        ai_contact['last_name'] = amo_contact['last_name']
-        ai_contact['name'] = amo_contact['name']
-        ai_contact['phone'] = None
-        for cust_f in amo_contact["custom_fields_values"]:
-            if cust_f.get("field_code") == "PHONE":
-                ai_contact['phone'] = cust_f.get("values")[0]['value']
+        ai_contact['name'] = amo_contact['first_name']
+        ai_contact['surname'] = amo_contact['last_name']
+        # for cust_f in amo_contact["custom_fields_values"]:
+        #     if cust_f.get("field_code") == "PHONE":
+        #         ai_contact['phone'] = cust_f.get("values")[0]['value']
         return ai_contact
 
 
@@ -72,10 +70,8 @@ class AIClient(AIClientData, AIClientStatic):
             return http.HTTPStatus.OK, {}
         result = {}
         headers = self._get_headers()
-        json_data = json.dumps(data)
-        json_data = bytes(json_data, encoding='utf-8')
         async with ClientSession(headers=headers) as session:
-            async with session.post(url=url, json=json_data,**kwargs) as response:
+            async with session.post(url=url, json=data, headers=headers, **kwargs) as response:
                 result = await response.read()
                 status = response.status
             if status in (http.HTTPStatus.OK,
@@ -87,14 +83,22 @@ class AIClient(AIClientData, AIClientStatic):
         return status, result
 
     async def send_newcontact2ai(self, contact: Contact) -> dict:
-        url = self._prepare_url('contact')
-        status, result = await self._request_post(url, contact.model_dump())
+        url = self._prepare_url('contacts')
+        logger.debug(f'contact = {contact}')
+        payload = {
+            "user_id": contact.get("id"),
+            "name": contact.get("name"),
+            "surname": contact.get("last_name")
+        }
+        status, result = await self._request_post(url, payload)
         return result
 
     async def send_message2ai(self, contact_id: int, message: str) -> dict:
         url = self._prepare_url('message')
         logger.debug(f'url = {url}')
-        status, result = await self._request_post(url, data={"message": message, "contact_id": contact_id})
+        payload = {"message": message, "user_id": contact_id}
+        logger.debug(f'payload {payload}')
+        status, result = await self._request_post(url, payload)
         logger.debug(f'status = {status}, result = {result}')
         return result
 
