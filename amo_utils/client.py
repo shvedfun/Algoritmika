@@ -159,3 +159,15 @@ class AMOClient(AMOClientData, AMOClientStatic):
         status, result = await self._request_get(suffics_name=f'contacts', id=contact_id)
         return result
 
+    async def lead_done(self, lead_id):
+        new_pipeline_id = self.pipelines['Записаны']
+        new_status_id = self.pipelines_statuses[new_pipeline_id]["Успешно реализовано"]
+        data_patch_leads = [{'id': lead_id,
+                             'pipeline_id': new_pipeline_id,
+                             'status_id': new_status_id,
+                             },
+                            ]
+        logger.debug(f'data_patch_leads = {data_patch_leads}')
+        result = await self.patch_leads(json_data=data_patch_leads)
+        return result
+

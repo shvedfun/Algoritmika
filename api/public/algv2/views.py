@@ -1,5 +1,6 @@
 import datetime
 import http.client
+import traceback
 from uuid import UUID, uuid4
 from typing import Union
 from fastapi import APIRouter, Depends, Query, Request, Form, BackgroundTasks, HTTPException, Response
@@ -13,6 +14,9 @@ from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
 from api.utils.messages_utils import MessagesUtils
+from amo_utils.client import AMOClient
+from api.config import settings
+
 
 router = APIRouter()
 
@@ -55,19 +59,22 @@ def get_students(contact_id: int = None):
 
 @router.post("/student", response_model=Student)
 def post_students(student: Student):
-    student.id = student.id or uuid4()
-    student.updated = datetime.datetime.utcnow().isoformat()
-    sql = f'UPSERT INTO i_student (id, first_name, last_name, middle_name, age, school_id, course_id, group_id, contact_id, updated) ' \
-          f"VALUES (\'{student.id}\', \'{student.first_name}\', \'{student.last_name}\', \'{student.middle_name}\'," \
-          f"{student.age}, {student.school_id}, {student.course_id}, {student.group_id}, {student.contact_id}, CAST(\'{student.updated}\' AS DateTime))"
-    logger.debug(f'sql = {sql}')
-    result = db.execute_query(sql)
-    sql = f'SELECT * FROM i_student WHERE id = \'{student.id}\''
-    st = db.execute_query(sql)[0].rows[0]
-    logger.info(f'st = {st}')
-    st = delete_null(st)
-    student = Student(**st)
-    logger.debug(f'result = {student}')
+    try:
+        student.id = student.id or uuid4()
+        student.updated = datetime.datetime.utcnow().isoformat()
+        sql = f'UPSERT INTO i_student (id, first_name, last_name, middle_name, age, school_id, course_id, group_id, contact_id, updated) ' \
+              f"VALUES (\'{student.id}\', \'{student.first_name}\', \'{student.last_name}\', \'{student.middle_name}\'," \
+              f"{student.age}, {student.school_id}, {student.course_id}, {student.group_id}, {student.contact_id}, CAST(\'{student.updated}\' AS DateTime))"
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)
+        sql = f'SELECT * FROM i_student WHERE id = \'{student.id}\''
+        st = db.execute_query(sql)[0].rows[0]
+        logger.info(f'st = {st}')
+        st = delete_null(st)
+        student = Student(**st)
+        logger.debug(f'result = {student}')
+    except Exception as e:
+        logger.error(f'Error = {traceback.format_exc()}')
     return student
 
 
@@ -113,7 +120,8 @@ def get_booking(student_id: str = None, group_id: int = None):
 
 
 @router.post("/booking", response_model=Union[Booking, dict])
-def new_booking(bk: Booking, response: Response):
+async def new_booking(bk: Booking, response: Response):
+    amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
     # exists_capacity = get_group_capacity_exists(group_id)
     tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
     if not bk.created:
@@ -133,7 +141,9 @@ def new_booking(bk: Booking, response: Response):
         bk.status = BookingStatusEnum.rjct
         return bk
     db_executor.upsert_booking(bk)
-
+    lead_id = db_executor.get_lead_id_from_student_id(bk.student_id)
+    if lead_id:
+        await amo_client.lead_done(lead_id)
     return bk
 
 # @router.patch("/booking", response_model=Union[Booking, dict])

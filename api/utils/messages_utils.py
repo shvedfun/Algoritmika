@@ -2,11 +2,13 @@ import http
 import traceback
 from datetime import datetime
 
-from api.public.algv2.models import PhoneMessage, Message, Contact
+from api.public.algv2.models import PhoneMessage, Message, Contact, Booking, BookingStatusEnum
 from api.ydb_utils import db_executor
+from amo_utils.client import AMOClient
 from ai_utils.client import get_ai_client, AIClient
 from api.utils.logger import get_logger
 from api.wazzup.wazzup_utils import WazzupClient, get_wazzup_client
+from api.config import settings
 
 logger = get_logger(__name__)
 
@@ -46,6 +48,25 @@ class MessagesUtils:
                 db_executor.insert_message(message)
         return
 
+    @staticmethod
+    async def handle_booking(bk: Booking):
+        result = {}
+        # tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+        # if not bk.created:
+        #     bk.created = tst
+        # bk.updated = tst
+        # group = db_executor.get_group(bk.group_id)
+        # logger.debug(f'group = {group}')
+        # result['group'] = group
+        # n_book = db_executor.get_number_booking(bk.group_id)
+        # logger.debug(f'n_book = {n_book}')
+        # if n_book < group.get('capacity', -1):
+        #     bk.status = BookingStatusEnum.ok
+        # else:
+        #     bk.status = BookingStatusEnum.rjct
+        #     return bk
+        # db_executor.upsert_booking(bk)
 
+        return result
 
 

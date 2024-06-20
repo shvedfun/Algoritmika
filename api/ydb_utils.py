@@ -4,7 +4,7 @@ import uuid
 
 
 import ydb
-from api.public.algv2.models import Contact, Booking, Message
+from api.public.algv2.models import Contact, Booking, Message, Student
 from api.utils.logger import get_logger
 
 logging.getLogger('ydb').setLevel(logging.INFO)
@@ -71,7 +71,7 @@ class DBExecutor:
         result = self.db.execute_query(sql)[0].rows
         return result[0][0] if result else None
 
-    def upsert_booking(bk: Booking):
+    def upsert_booking(self, bk: Booking):
         sql = f'UPSERT INTO i_booking (student_id, group_id, status, created, updated) VAlUES ' \
               f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
               f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
@@ -100,7 +100,7 @@ class DBExecutor:
             sql += f' AND id = {contact_id}'
         if phone:
             sql += f' AND phone = \'{phone}\''
-        # sql += " ORDER BY created"
+        sql += " ORDER BY id DESC"
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)[0].rows
         logger.debug(f'contact_result = {result}')
@@ -118,6 +118,33 @@ class DBExecutor:
         result['created'] = (result['created']// 10**6)
         result = Message(**result)
         return result
+
+    def get_student(self, student_id: str=None) -> Student:
+        sql = f'SELECT * FROM i_student'
+        if student_id is not None:
+            sql += f' WHERE id = \'{student_id}\' ORDER BY id DESC'
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)[0].rows
+        if len(result) > 0:
+            result = result[0]
+            result = Student(**result)
+        else:
+            result = None
+        return result
+
+    def get_lead_id_from_student_id(self, student_id) -> int:
+        lead_id = None
+        student = self.get_student(student_id)
+        logger.debug(f'student = {student}')
+        contact = None
+        if student.contact_id:
+            contact = self.get_contact(contact_id=student.contact_id)
+        logger.debug(f'contact = {contact}')
+        if contact:
+            contact = contact[0]
+            lead_id = contact.get('amo_lead_id')
+        logger.debug(f"lead_id = {lead_id}")
+        return lead_id
 
 
 db_executor = DBExecutor(db=db)
