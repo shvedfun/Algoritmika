@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import uuid
 
@@ -51,8 +52,8 @@ class DBExecutor:
         c.amo_id = c.id
         c.created = datetime.datetime.utcnow().isoformat()
         # c.id = str(uuid.uuid4())
-        sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created) VALUES ' \
-              f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime))'
+        sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created, params) VALUES ' \
+              f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime), \'{json.dumps(c.params)}\')'
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)
 

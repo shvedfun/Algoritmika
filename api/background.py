@@ -60,7 +60,6 @@ class BackgroundManager:
                     validated_contact = self.amo_client.get_validated_contact(contact, lead)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
-
                         db_executor.upsert_contact_from_amo(validated_contact)
                         new_pipeline_id = self.amo_client.pipelines['AI']
                         new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
