@@ -1,5 +1,6 @@
 import asyncio
 import json
+import traceback
 
 from amo_utils.client import AMOClient
 from ai_utils.client import AIClient
@@ -33,16 +34,19 @@ class BackgroundManager:
     async def run(self):
         count = 1
         while True:
-            if count % self.sleep_contact2ai_message == 0:
-                pass
-                # await self.do_contact2ai_message()
-            if count % self.sleep_ai2contact_message == 0:
-                pass
-                # await self.do_ai2contact_message()
-            if count % self.sleep_new_contact == 0:
-                await self.do_new_lead()
-            await asyncio.sleep(self.sleep_time)
-            count += 1
+            try:
+                if count % self.sleep_contact2ai_message == 0:
+                    pass
+                    # await self.do_contact2ai_message()
+                if count % self.sleep_ai2contact_message == 0:
+                    pass
+                    # await self.do_ai2contact_message()
+                if count % self.sleep_new_contact == 0:
+                    await self.do_new_lead()
+                await asyncio.sleep(self.sleep_time)
+                count += 1
+            except Exception as e:
+                logger.error(f'Error {traceback.format_exc()}')
 
     async def do_new_lead(self):
         pipelile_id = AMOClient.pipelines.get('default')
