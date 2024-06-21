@@ -1,5 +1,7 @@
 import http
 import json
+import traceback
+
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
 import requests
@@ -61,7 +63,7 @@ class AMOClientStatic:
         return result
 
     @staticmethod
-    def get_validated_contact(amo_contact: dict, lead: dict) -> dict:
+    def get_validated_contact(amo_contact: dict, lead: dict, schools: list[dict]) -> dict:
         contact = {}
         contact['id'] = amo_contact['id']
         contact['amo_id'] = amo_contact['id']
@@ -76,6 +78,16 @@ class AMOClientStatic:
                 contact['phone'] = AMOClientStatic.clear_phone_number(cust_f.get("values")[0]['value'])
             else:
                 params[cust_f.get('field_name')] = cust_f.get("values")[0]['value']
+                if cust_f.get('field_name') == 'Школа':
+                    try:
+                        school_number = int(cust_f.get("values")[0]['value'])
+                        params['school_id'] = None
+                        for school in schools:
+                            logger.debug(f'school = {school}, school_number = {school_number}')
+                            if school.get('number') == school_number:
+                                params['school_id'] = school.get('id')
+                    except Exception as e:
+                        logger.warning(f'{traceback.format_exc()}')
         contact['params'] = params
         return contact
 

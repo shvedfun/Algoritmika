@@ -147,6 +147,15 @@ class DBExecutor:
         logger.debug(f"lead_id = {lead_id}")
         return lead_id
 
+    def get_school(self, school_id=None, school_number=None):
+        sql = 'SELECT * FROM i_school WHERE 1 = 1 '
+        if school_id is not None:
+            sql += f' AND id = {school_id} '
+        if school_number is not  None:
+            sql += f' AND number = {int(school_number)}'
+        result = db.execute_query(sql)[0].rows
+        return result
+
 
 db_executor = DBExecutor(db=db)
 

@@ -18,7 +18,7 @@ class BackgroundManager:
             sleep_time:int = 1,
             sleep_contact2ai_message: int = 15,
             sleep_ai2contact_message: int = 20,
-            sleep_new_contact: int = 60
+            sleep_new_contact: int = 3
     ) -> None:
         self.sleep_time = sleep_time
         self.sleep_new_contact = sleep_new_contact
@@ -50,14 +50,16 @@ class BackgroundManager:
         if result:
             logger.debug(f'result get leads = {result}')
         leads = self.amo_client.get_leads_from_response(result)
+        schools = db_executor.get_school()
         for lead in leads:
+            logger.debug(f'schools = {schools}')
             if lead.get('status_id', 0) == self.amo_client.pipelines_statuses[pipelile_id]["Первичный контакт"]:
                 contacts = AMOClient.get_contact_ids_from_dict_lead(lead)
                 main_contact_id = self.amo_client.get_main_contact_id(contacts)
                 logger.debug(f'main_contact_id = {main_contact_id}')
                 if main_contact_id:
                     contact = await self.amo_client.get_contact(main_contact_id)
-                    validated_contact = self.amo_client.get_validated_contact(contact, lead)
+                    validated_contact = self.amo_client.get_validated_contact(contact, lead, schools)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
                         db_executor.upsert_contact_from_amo(validated_contact)
