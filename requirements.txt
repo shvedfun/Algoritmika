@@ -6,3 +6,5 @@ ydb[yc]
 Jinja2
 sqlmodel
 psycopg2-binary
+asyncpg
+pyairtable

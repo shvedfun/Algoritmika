@@ -1,6 +1,6 @@
 import http
 from aiohttp import ClientSession
-from aiohttp.client import S
+# from aiohttp.client import S
 from typing import Optional
 
 from api.config import settings

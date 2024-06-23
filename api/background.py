@@ -1,9 +1,8 @@
 import asyncio
-import json
 import traceback
 
-from amo_utils.client import AMOClient
-from ai_utils.client import AIClient
+from api.amo_utils.client import AMOClient
+from api.ai_utils.client import AIClient
 from api.utils.logger import get_logger
 from api.ydb_utils import db_executor
 from api.config import settings
@@ -32,6 +31,9 @@ class BackgroundManager:
         self.aiclient = ai_client or AIClient(url=settings.AI_URL, token=settings.AI_TOKEN)
 
     async def run(self):
+        if settings.IS_LOCAL:
+            logger.debug(f'Exit from background task as IS_LOCAL')
+            return
         count = 1
         while True:
             try:

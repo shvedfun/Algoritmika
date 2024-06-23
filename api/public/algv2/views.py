@@ -14,7 +14,7 @@ from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
 from api.utils.messages_utils import MessagesUtils
-from amo_utils.client import AMOClient
+from api.amo_utils.client import AMOClient
 from api.config import settings
 
 

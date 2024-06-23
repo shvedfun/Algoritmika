@@ -1,14 +1,11 @@
 import http
 import traceback
-from datetime import datetime
 
-from api.public.algv2.models import PhoneMessage, Message, Contact, Booking, BookingStatusEnum
+from api.public.algv2.models import PhoneMessage, Message, Contact, Booking
 from api.ydb_utils import db_executor
-from amo_utils.client import AMOClient
-from ai_utils.client import get_ai_client, AIClient
+from api.ai_utils.client import get_ai_client, AIClient
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupClient, get_wazzup_client
-from api.config import settings
+from api.wazzup.wazzup_utils import get_wazzup_client
 
 logger = get_logger(__name__)
 

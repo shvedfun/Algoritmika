@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlmodel import Session, text
+from sqlalchemy import Session, text
 
 from api.config import settings
 from api.database import get_session
