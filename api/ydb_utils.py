@@ -12,7 +12,7 @@ logging.getLogger('ydb').setLevel(logging.INFO)
 logger = get_logger(__name__)
 
 
-class DBProvider:
+class YDBProvider:
   def __init__(self) -> None:
     self.__driver = ydb.Driver(
         endpoint='grpcs://ydb.serverless.yandexcloud.net:2135',
@@ -39,12 +39,12 @@ class DBProvider:
   def test(self):
     print(self.execute_query('select * from queue;'))
 
-db = DBProvider()
+db = YDBProvider()
 
 
-class DBExecutor:
+class YDBExecutor:
 
-    def __init__(self, db: DBProvider):
+    def __init__(self, db: YDBProvider):
         self.db = db
 
     def upsert_contact_from_amo(self, contact_amo):
@@ -157,9 +157,9 @@ class DBExecutor:
         return result
 
 
-db_executor = DBExecutor(db=db)
+db_executor = YDBExecutor(db=db)
 
 
 if __name__ == '__main__':
-  DBProvider().test()
+  YDBProvider().test()
 

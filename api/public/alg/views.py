@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from api.database import get_session
+from api.pg_database import get_session
 from api.public.alg.crud import (
     create_contact,
     # delete_contact,

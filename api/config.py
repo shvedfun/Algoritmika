@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = f"Algoritmika"
     DESCRIPTION: str = "For Algoritmika"
-    ENV: Literal["development", "staging", "production"] = "development"
+    ENV: Literal["development", "TEST", "staging", "production"] = "development"
     VERSION: str = "0.3"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # DATABASE_URI: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/algoritmika"

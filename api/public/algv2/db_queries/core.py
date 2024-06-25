@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from api.database import async_engine, sync_engine
+from api.pg_database import async_engine, sync_engine
 
 
 # def create_table():

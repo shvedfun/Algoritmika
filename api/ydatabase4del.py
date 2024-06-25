@@ -1,7 +1,7 @@
-from api.ydb_utils import DBProvider
+from api.ydb_utils import YDBProvider
 
 
-def create_tables(db: DBProvider):
+def create_tables(db: YDBProvider):
     pass
     # create_school = """
     # CREATE TABLE school_test (

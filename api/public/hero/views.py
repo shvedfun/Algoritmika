@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
-from api.database import get_session
+from api.pg_database import get_session
 from api.public.hero.crud import (
     create_hero,
     delete_hero,

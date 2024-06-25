@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session, select
 
-from api.database import get_session
+from api.pg_database import get_session
 from api.public.hero.models import Hero, HeroCreate, HeroUpdate
 
 

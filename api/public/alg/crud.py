@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session, select
 
-from api.database import get_session
+from api.pg_database import get_session
 from api.public.alg.models import Contact, ContactUpdate, Message
 
 

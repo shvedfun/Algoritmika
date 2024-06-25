@@ -4,10 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from api.config import Settings
-from api.public.algv2.db_models import create_db_and_tables
+from api.public.algv2.pg_models import create_db_and_tables
 from api.public import api as public_api
 from api.utils.logger import get_logger
-from api.ydb_utils import DBProvider
+from api.ydb_utils import YDBProvider
 from api.ydatabase4del import create_tables
 from fastapi.middleware.cors import CORSMiddleware
 from api.background import BackgroundManager
@@ -17,9 +17,8 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    # create_heroes_and_teams()
-    db = DBProvider()
+    # create_db_and_tables()
+    db = YDBProvider()
     result = db.execute_query('select 1')
     logger.info(f'result = {result[0].rows}')
     create_tables(db)

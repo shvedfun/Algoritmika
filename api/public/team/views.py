@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
-from api.database import get_session
+from api.pg_database import get_session
 from api.public.team.crud import (
     create_team,
     delete_team,
