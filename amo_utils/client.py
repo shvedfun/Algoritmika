@@ -1,5 +1,6 @@
 import http
 import json
+import re
 import traceback
 
 from api.utils.logger import get_logger
@@ -95,7 +96,10 @@ class AMOClientStatic:
     def clear_phone_number(phone: str) -> str | None:
         if type(phone) is not str:
             return None
-        phone = phone.strip().replace("+", "").replace("-", "")
+        digits = re.findall(r'\d+', phone)
+        phone = "".join(digits) # phone.strip().replace("+", "").replace("-", "")
+        if phone[0] == "8":
+            phone = "7" + phone[1:]
         return phone
 
 
