@@ -1,0 +1,7 @@
+creds/*
+amo_http.http
+api/config.py
+.env
+logs/*
+.pytest_cache
+*/__pycache__/*
