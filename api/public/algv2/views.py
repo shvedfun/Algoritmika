@@ -193,6 +193,14 @@ def get_course(school_id: int = None):
     result = db.execute_query(get_course_sql)[0].rows
     results = []
     for r in result:
+        r['properties'] = {
+            "properties": r.get("properties", ""),
+            "summary": r.get("summary", ""),
+            "result": r.get("result", ""),
+            "cases_full_description": r.get("cases_full_description", ""),
+            "presentation_link": r.get("presentation_link", ""),
+            "cases": r.get("cases", "")
+        }
         results.append(Course(**r))
     # todo add logics
     return results
