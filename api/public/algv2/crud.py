@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy import select, insert, update, delete, text
+from sqlalchemy.sql.expression import func
 from api.pg_database import get_async_session, async_engine, sync_engine, get_session
 from api.public.algv2.pg_models import Contact, School, Message, Course, Group, Booking
 from api.utils.logger import get_logger
@@ -16,7 +17,7 @@ class AbsCRUD:
     _model = None
 
     @classmethod
-    def create_instance(cls, instance: dict):
+    def upsert_instance(cls, instance: dict):
         with sync_engine.connect() as conn:
             stmt = insert(cls._model).returning(cls._model)
             logger.debug(f'instance = {instance}')
@@ -68,6 +69,22 @@ class AbsCRUD:
             conn.commit()
             return {"ok": True}
 
+    @classmethod
+    def count(cls, filters={}):
+        with sync_engine.connect() as conn:
+            stmt = select(cls._model)
+            if filters:
+                stmt = cls._add_filters(stmt, filters)
+            stmt = stmt.with_only_columns(func.count(cls._model.id))
+            result = conn.execute(stmt).scalar_one()
+            logger.debug(f'result = {result}')
+            return result
+
+    @classmethod
+    def _add_filters(cls, stmt, filters: dict):
+        for k, v in filters.items():
+            pass    #TODO add filters to stmt
+        return stmt
 
 class ContactCRUD(AbsCRUD):
     _model = Contact

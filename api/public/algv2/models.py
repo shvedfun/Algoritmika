@@ -75,6 +75,7 @@ class BookingStatusEnum(str, Enum):
     ok = 'ok' #first contact
     rjct = 'reject_full'
     wait = 'wait'
+    bad_data = 'bad_data'
 
 
 class Booking(BaseModel):

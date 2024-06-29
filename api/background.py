@@ -4,7 +4,7 @@ import traceback
 from api.amo_utils.client import AMOClient
 from api.ai_utils.client import AIClient
 from api.utils.logger import get_logger
-from api.ydb_utils import db_executor
+from api.ydb_utils import ydb_executor
 from api.config import settings
 
 logger = get_logger(__name__)
@@ -56,7 +56,7 @@ class BackgroundManager:
         if result:
             logger.debug(f'result get leads = {result}')
         leads = self.amo_client.get_leads_from_response(result)
-        schools = db_executor.get_school()
+        schools = ydb_executor.get_school()
         for lead in leads:
             logger.debug(f'schools = {schools}')
             if lead.get('status_id', 0) == self.amo_client.pipelines_statuses[pipelile_id]["Первичный контакт"]:
@@ -68,7 +68,7 @@ class BackgroundManager:
                     validated_contact = self.amo_client.get_validated_contact(contact, lead, schools)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
-                        db_executor.upsert_contact_from_amo(validated_contact)
+                        ydb_executor.upsert_contact_from_amo(validated_contact)
                         new_pipeline_id = self.amo_client.pipelines['AI']
                         new_status_id = self.amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
                         data_patch_leads = [{'id': lead['id'],

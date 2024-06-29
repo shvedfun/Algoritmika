@@ -3,11 +3,11 @@ import json
 import logging
 import uuid
 
-
 import ydb
 from api.public.algv2.models import Contact, Booking, Message, Student
 from api.utils.logger import get_logger
 
+from api.public.algv2 import crud
 logging.getLogger('ydb').setLevel(logging.INFO)
 logger = get_logger(__name__)
 
@@ -39,33 +39,43 @@ class YDBProvider:
   def test(self):
     print(self.execute_query('select * from queue;'))
 
-db = YDBProvider()
-
 
 class YDBExecutor:
 
-    def __init__(self, db: YDBProvider):
+    def __init__(self, db: YDBProvider, backend=None):
         self.db = db
+        self.backend = backend
 
     def upsert_contact_from_amo(self, contact_amo):
         c = Contact(**contact_amo)
         c.amo_id = c.id
         c.created = datetime.datetime.utcnow().isoformat()
-        # c.id = str(uuid.uuid4())
-        sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created, params) VALUES ' \
-              f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime), \'{json.dumps(c.params)}\')'
-        logger.debug(f'sql = {sql}')
-        result = db.execute_query(sql)
+        if self.backend:
+            crud.ContactCRUD.upsert_instance(c.model_dump())
+        else:
+            sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created, params) VALUES ' \
+                  f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime), \'{json.dumps(c.params)}\')'
+            logger.debug(f'sql = {sql}')
+            result = self.db.execute_query(sql)
+            crud.ContactCRUD.upsert_instance(c.model_dump())
 
     def get_group(self, id):
-        sql = f'SELECT * FROM i_group WHERE id = {id}'
-        result = self.db.execute_query(sql)[0].rows
-        return result[0] if result else result
+        if self.backend:
+            result = crud.GroupCRUD.read_instance(id)
+        else:
+            sql = f'SELECT * FROM i_group WHERE id = {id}'
+            result = self.db.execute_query(sql)[0].rows
+            result = result[0] if result else result
+        return result
 
     def get_number_booking(self, group_id):
-        sql = f'SELECT COUNT(*) FROM i_booking WHERE group_id = {group_id}'
-        result = self.db.execute_query(sql)[0].rows
-        return result[0][0] if result else -1
+        if self.backend:
+            result = crud.GroupCRUD.count(filters={"group_id": group_id}) #TODO нужно дописать каутн
+        else:
+            sql = f'SELECT COUNT(*) FROM i_booking WHERE group_id = {group_id}'
+            result = self.db.execute_query(sql)[0].rows
+            result = result[0][0] if result else -1
+        return result
 
     def get_contact_id_by_phone(self, phone):
         sql = f'SELECT id FROM i_contact WHERE phone = \'{phone}\' ORDER BY id DESC'
@@ -77,7 +87,7 @@ class YDBExecutor:
               f'(\'{bk.student_id}\', {bk.group_id}, \'{bk.status}\'' \
               f', CAST(\'{bk.created.isoformat()}\' AS DateTime), CAST(\'{bk.updated.isoformat()}\' AS DateTime))'
         logger.debug(f'sql = {sql}')
-        db.execute_query(sql)
+        self.db.execute_query(sql)
 
     def get_booking(self, student_id: str = None, group_id: int = None):
         sql = 'SELECT * FROM i_booking WHERE 1=1'
@@ -87,7 +97,7 @@ class YDBExecutor:
             sql += f' AND group_id={group_id}'
         # sql += ' ORDER BY id'
         logger.debug(f'sql = sql')
-        result = db.execute_query(sql)[0].rows
+        result = self.db.execute_query(sql)[0].rows
         return result
 
     def get_contact(self, contact_id=None, phone: str=""):
@@ -103,7 +113,7 @@ class YDBExecutor:
             sql += f' AND phone = \'{phone}\''
         sql += " ORDER BY id DESC"
         logger.debug(f'sql = {sql}')
-        result = db.execute_query(sql)[0].rows
+        result = self.db.execute_query(sql)[0].rows
         logger.debug(f'contact_result = {result}')
         return result
 
@@ -113,9 +123,9 @@ class YDBExecutor:
         # ms.created = datetime.datetime.now(tz=datetime.timezone.utc)
         sql = f'INSERT INTO i_message (id, text, ai_id, contact_id, created) VALUES (\'{ms.id}\', \'{ms.text}\', \'{ms.ai_id}\', {ms.contact_id}, CAST({int(ms.created.timestamp() * 10**6)} AS Timestamp))'
         logger.debug(f'sql = {sql}')
-        result = db.execute_query(sql)
+        result = self.db.execute_query(sql)
         sql = f'SELECT * FROM i_message WHERE id = \'{ms.id}\''
-        result = db.execute_query(sql)[0].rows[0]
+        result = self.db.execute_query(sql)[0].rows[0]
         result['created'] = (result['created']// 10**6)
         result = Message(**result)
         return result
@@ -125,7 +135,7 @@ class YDBExecutor:
         if student_id is not None:
             sql += f' WHERE id = \'{student_id}\' ORDER BY id DESC'
         logger.debug(f'sql = {sql}')
-        result = db.execute_query(sql)[0].rows
+        result = self.db.execute_query(sql)[0].rows
         if len(result) > 0:
             result = result[0]
             result = Student(**result)
@@ -153,12 +163,12 @@ class YDBExecutor:
             sql += f' AND id = {school_id} '
         if school_number is not  None:
             sql += f' AND number = {int(school_number)}'
-        result = db.execute_query(sql)[0].rows
+        result = self.db.execute_query(sql)[0].rows
         return result
 
 
-
-db_executor = YDBExecutor(db=db)
+db = YDBProvider()
+ydb_executor = YDBExecutor(db=db)
 
 
 if __name__ == '__main__':

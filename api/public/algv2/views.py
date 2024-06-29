@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from api.ydb_utils import db, db_executor
+from api.ydb_utils import db, ydb_executor
 from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
@@ -113,7 +113,7 @@ def patch_students(id: str, student: Student):
 
 @router.get('/booking', response_model=list[Booking])
 def get_booking(student_id: str = None, group_id: int = None):
-    result = db_executor.get_booking(student_id, group_id)
+    result = ydb_executor.get_booking(student_id, group_id)
     results = []
     for r in result:
         r = delete_null(r)
@@ -123,30 +123,38 @@ def get_booking(student_id: str = None, group_id: int = None):
 
 @router.post("/booking", response_model=Union[Booking, dict])
 async def new_booking(bk: Booking, response: Response):
-    amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
-    # exists_capacity = get_group_capacity_exists(group_id)
-    tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
-    if not bk.created:
-        bk.created = tst
-    bk.updated = tst
-    group = db_executor.get_group(bk.group_id)
-    logger.debug(f'group = {group}')
-    if not group:
+    bk = MessagesUtils.handle_booking(bk)
+    if bk.status == BookingStatusEnum.rjct:
         response.status_code = http.client.NOT_ACCEPTABLE
-        return bk
-    n_book = db_executor.get_number_booking(bk.group_id)
-    logger.debug(f'n_book = {n_book}')
-    if n_book < group.get('capacity', -1):
-        bk.status = BookingStatusEnum.ok
-    else:
+    elif bk.status == BookingStatusEnum.bad_data:
         response.status_code = http.client.NOT_ACCEPTABLE
-        bk.status = BookingStatusEnum.rjct
-        return bk
-    db_executor.upsert_booking(bk)
-    lead_id = db_executor.get_lead_id_from_student_id(bk.student_id)
-    if lead_id:
-        await amo_client.lead_done(lead_id)
     return bk
+
+    # amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
+    # # exists_capacity = get_group_capacity_exists(group_id)
+    # tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+    # if not bk.created:
+    #     bk.created = tst
+    # bk.updated = tst
+    # group = ydb_executor.get_group(bk.group_id)
+    # logger.debug(f'group = {group}')
+    # if not group:
+    #     response.status_code = http.client.NOT_ACCEPTABLE
+    #     return bk
+    # n_book = ydb_executor.get_number_booking(bk.group_id)
+    # logger.debug(f'n_book = {n_book}')
+    # if n_book < group.get('capacity', -1):
+    #     bk.status = BookingStatusEnum.ok
+    # else:
+    #     response.status_code = http.client.NOT_ACCEPTABLE
+    #     bk.status = BookingStatusEnum.rjct
+    #     return bk
+    # ydb_executor.upsert_booking(bk)
+    # lead_id = ydb_executor.get_lead_id_from_student_id(bk.student_id)
+    # if lead_id:
+    #     await amo_client.lead_done(lead_id)
+    # return bk
+
 
 # @router.patch("/booking", response_model=Union[Booking, dict])
 # def patch_booking(bk: Booking, response: Response):
@@ -167,7 +175,7 @@ async def new_booking(bk: Booking, response: Response):
 
 @router.get("/contact", response_model=list[Contact])
 def get_contacts(contact_id: int = None):
-    result = db_executor.get_contact(contact_id)
+    result = ydb_executor.get_contact(contact_id)
     logger.debug(f'result = {result}')
     results = []
     for r in result:
@@ -180,32 +188,39 @@ def get_contacts(contact_id: int = None):
 def get_school():
     # get_course_sql = 'SELECT * FROM i_school'
     # result = db.execute_query(get_course_sql)[0].rows
-    result = db_executor.get_school()
+    result = ydb_executor.get_school()
     results = []
     for r in result:
         r = delete_null(r)
         results.append(School(**r))
     return results
 
-from api.pg_database import sync_engine
-from sqlalchemy import text, select
 
 @router.get("/pg_school", response_model=list[School])
 def get_pg_school():
     result = crud.SchoolCRUD.read_instancies()
     return result
 
+
+@router.get("/pg_school_count", response_model=int)
+def get_pg_school():
+    result = crud.SchoolCRUD.count()
+    return result
+
+
 @router.post("/pg_school", response_model=School)
 def insert_school(school: School):
-    result = crud.SchoolCRUD.create_instance(school.model_dump(exclude=["id"]))
+    result = crud.SchoolCRUD.upsert_instance(school.model_dump(exclude=["id"]))
     logger.debug(f'result = {result}')
     return result
+
 
 @router.patch("/pg_school/{id}", response_model=School)
 def patch_school(id: int, school: School):
     result = crud.SchoolCRUD.update_instance(id, school.model_dump(exclude=["id"]))
     logger.debug(f'result = {result}')
     return result
+
 
 @router.delete("/pg_school/{id}", response_model=dict)
 def delete_school(id: int):
