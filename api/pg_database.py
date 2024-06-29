@@ -9,7 +9,7 @@ from api.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-connect_args = {"check_same_thread": False}
+# connect_args = {"check_same_thread": False}
 
 sync_engine = create_engine(
     url=settings.DATABASE_URI_psycopg,
@@ -22,16 +22,22 @@ sync_engine = create_engine(
 async_engine = create_async_engine(
     url=settings.DATABASE_URI_asyncpg,
     echo=True,
-    pool_size=5,
-    max_overflow=10,
+    # future=True,
+    # pool_size=5,
+    # max_overflow=10,
 )
 
 
-async def get_session() -> AsyncSession:
+async def get_async_session() -> AsyncSession:
     async_session = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
     # return async_session
     async with async_session() as session:
         yield session
+
+def get_session() -> Session:
+    session = sessionmaker(sync_engine)
+    with session() as conn:
+        yield conn
 
 
 async def get_db_version():
@@ -44,8 +50,8 @@ class Base(DeclarativeBase):
     pass
 
 if settings.IS_LOCAL:
-    session_factory = sessionmaker(sync_engine)
-    async_session_factory = async_sessionmaker(async_engine)
+    # session_factory = sessionmaker(async_engine)
+    # async_session_factory = async_sessionmaker(async_engine)
 
     asyncio.run(get_db_version())
 

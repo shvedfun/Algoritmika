@@ -4,7 +4,7 @@ import traceback
 from uuid import UUID, uuid4
 from typing import Union
 from fastapi import APIRouter, Depends, Query, Request, Form, BackgroundTasks, HTTPException, Response
-from sqlmodel import Session, select, desc
+# from sqlmodel import Session, select, desc
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -13,9 +13,11 @@ from api.ydb_utils import db, db_executor
 from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
+from api.public.algv2.pg_models import School as pgSchool
 from api.utils.messages_utils import MessagesUtils
 from api.amo_utils.client import AMOClient
 from api.config import settings
+from api.public.algv2 import crud
 
 
 router = APIRouter()
@@ -176,14 +178,40 @@ def get_contacts(contact_id: int = None):
 
 @router.get("/school", response_model=list[School])
 def get_school():
-    get_course_sql = 'SELECT * FROM i_school'
-    result = db.execute_query(get_course_sql)[0].rows
+    # get_course_sql = 'SELECT * FROM i_school'
+    # result = db.execute_query(get_course_sql)[0].rows
+    result = db_executor.get_school()
     results = []
     for r in result:
         r = delete_null(r)
         results.append(School(**r))
     return results
 
+from api.pg_database import sync_engine
+from sqlalchemy import text, select
+
+@router.get("/pg_school", response_model=list[School])
+def get_pg_school():
+    result = crud.SchoolCRUD.read_instancies()
+    return result
+
+@router.post("/pg_school", response_model=School)
+def insert_school(school: School):
+    result = crud.SchoolCRUD.create_instance(school.model_dump(exclude=["id"]))
+    logger.debug(f'result = {result}')
+    return result
+
+@router.patch("/pg_school/{id}", response_model=School)
+def patch_school(id: int, school: School):
+    result = crud.SchoolCRUD.update_instance(id, school.model_dump(exclude=["id"]))
+    logger.debug(f'result = {result}')
+    return result
+
+@router.delete("/pg_school/{id}", response_model=dict)
+def delete_school(id: int):
+    result = crud.SchoolCRUD.delete_instance(id)
+    logger.debug(f'result = {result}')
+    return result
 
 @router.get("/course", response_model=list[Course])
 def get_course(school_id: int = None):

@@ -7,7 +7,8 @@ from alembic import context
 
 from api.config import settings
 
-from api.public.algv2.pg_models import Contact, Message, Base
+from api.public.algv2.pg_models import *
+from api.pg_database import Base
 
 
 # this is the Alembic Config object, which provides

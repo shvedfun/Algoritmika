@@ -1,11 +1,11 @@
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session, select
 
-from api.pg_database import get_session
+from api.pg_database import get_async_session
 from api.public.alg.models import Contact, ContactUpdate, Message
 
 
-def create_contact(contact: Contact, db: Session = Depends(get_session)):
+def create_contact(contact: Contact, db: Session = Depends(get_async_session)):
     contact_to_db = Contact.model_validate(contact)
     db.add(contact_to_db)
     db.commit()
@@ -13,7 +13,7 @@ def create_contact(contact: Contact, db: Session = Depends(get_session)):
     return contact_to_db
 
 
-def create_message(message: Message, db: Session = Depends(get_session)):
+def create_message(message: Message, db: Session = Depends(get_async_session)):
     message_to_db = Message.model_validate(message)
     db.add(message_to_db)
     db.commit()
@@ -21,12 +21,12 @@ def create_message(message: Message, db: Session = Depends(get_session)):
     return message_to_db
 
 
-def read_contacts(offset: int = 0, limit: int = 20, db: Session = Depends(get_session)):
+def read_contacts(offset: int = 0, limit: int = 20, db: Session = Depends(get_async_session)):
     contacts = db.exec(select(Contact).offset(offset).limit(limit)).all()
     return contacts
 
 
-def read_contact(contact_id: int, db: Session = Depends(get_session)):
+def read_contact(contact_id: int, db: Session = Depends(get_async_session)):
     contact = db.get(Contact, contact_id)
     if not contact:
         raise HTTPException(
@@ -36,7 +36,7 @@ def read_contact(contact_id: int, db: Session = Depends(get_session)):
     return contact
 
 
-def update_contact(contact_id: int, contact: ContactUpdate, db: Session = Depends(get_session)):
+def update_contact(contact_id: int, contact: ContactUpdate, db: Session = Depends(get_async_session)):
     contact_to_update = db.get(Contact, contact_id)
     if not contact_to_update:
         raise HTTPException(

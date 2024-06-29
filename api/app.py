@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     db = YDBProvider()
     result = db.execute_query('select 1')
     logger.info(f'result = {result[0].rows}')
-    create_tables(db)
+    # create_tables(db)
     background_manager = BackgroundManager()
     asyncio.create_task(background_manager.run())
     logger.info("startup: triggered")
@@ -36,6 +36,7 @@ def create_app(settings: Settings):
         # docs_url="/docs",
         description=settings.DESCRIPTION,
         lifespan=lifespan,
+        debug=True,
     )
 
     # origins = ["*"]

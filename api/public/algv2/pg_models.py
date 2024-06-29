@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 from api.pg_database import Base
 from api.config import settings
 from api.utils.logger import get_logger
-from api.pg_database import sync_engine, async_engine
+from api.pg_database import async_engine #sync_engine,
 
 logger = get_logger(__name__)
 
@@ -14,8 +14,10 @@ class School(Base):
     __tablename__ = "alg_school"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    number: Mapped[int] = mapped_column(Integer, name="Номер")
-    name: Mapped[str] = mapped_column(String(100), name="Школа")
+    number: Mapped[int] = mapped_column(Integer)
+    name: Mapped[str] = mapped_column(String(100))
+
+    groups: Mapped[List["Group"]] = relationship(back_populates="school", cascade="all, delete-orphan",)
 
 
 class Course(Base):
@@ -32,6 +34,8 @@ class Course(Base):
     cases_full_description: Mapped[str] = mapped_column(String)
     presentation_link: Mapped[str] = mapped_column(String)
     cases: Mapped[str] = mapped_column(String)
+
+    groups: Mapped[List["Group"]] = relationship(back_populates="course", cascade="all, delete-orphan",)
 
 
 class Faq(Base):
@@ -93,8 +97,8 @@ class Booking(Base):
     __tablename__ = "alg_booking"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(ForeignKey("Student.id"))
-    group_id: Mapped[int] = mapped_column(ForeignKey("Group.id"))
+    student_id: Mapped[str] = mapped_column(ForeignKey(Student.id))
+    group_id: Mapped[int] = mapped_column(ForeignKey(Group.id))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
