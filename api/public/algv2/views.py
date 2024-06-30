@@ -121,29 +121,11 @@ def get_booking(student_id: str = None, group_id: int = None):
 
 @router.post("/booking", response_model=Union[Booking, dict])
 async def new_booking(bk: Booking, response: Response):
-    amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
-    # exists_capacity = get_group_capacity_exists(group_id)
-    tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
-    if not bk.created:
-        bk.created = tst
-    bk.updated = tst
-    group = db_executor.get_group(bk.group_id)
-    logger.debug(f'group = {group}')
-    if not group:
+    bk = MessagesUtils.handle_booking(bk)
+    if bk.status == BookingStatusEnum.rjct:
         response.status_code = http.client.NOT_ACCEPTABLE
-        return bk
-    n_book = db_executor.get_number_booking(bk.group_id)
-    logger.debug(f'n_book = {n_book}')
-    if n_book < group.get('capacity', -1):
-        bk.status = BookingStatusEnum.ok
-    else:
+    elif bk.status == BookingStatusEnum.bad_data:
         response.status_code = http.client.NOT_ACCEPTABLE
-        bk.status = BookingStatusEnum.rjct
-        return bk
-    db_executor.upsert_booking(bk)
-    lead_id = db_executor.get_lead_id_from_student_id(bk.student_id)
-    if lead_id:
-        await amo_client.lead_done(lead_id)
     return bk
 
 # @router.patch("/booking", response_model=Union[Booking, dict])
