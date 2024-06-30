@@ -1,5 +1,5 @@
 import asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncAttrs
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 
@@ -29,15 +29,12 @@ async_engine = create_async_engine(
 
 
 async def get_async_session() -> AsyncSession:
-    async_session = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
-    # return async_session
-    async with async_session() as session:
-        yield session
+    async_session = async_sessionmaker(async_engine, expire_on_commit=False)
+    return async_session
 
 def get_session() -> Session:
     session = sessionmaker(sync_engine)
-    with session() as conn:
-        yield conn
+    return session
 
 
 async def get_db_version():
@@ -46,7 +43,7 @@ async def get_db_version():
         logger.debug(f'res = {res.all()}')
 
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 if settings.IS_LOCAL:
