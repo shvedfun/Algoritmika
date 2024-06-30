@@ -61,7 +61,7 @@ class Course(BaseModel):
     description: str
     age_from: int | None
     age_to: int | None
-    properties: dict = {}
+    properties: str = ""
 
 
 class Group(BaseModel):

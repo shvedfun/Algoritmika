@@ -1,22 +1,15 @@
 import datetime
 import http.client
 import traceback
-from uuid import UUID, uuid4
+from uuid import uuid4
 from typing import Union
-from fastapi import APIRouter, Depends, Query, Request, Form, BackgroundTasks, HTTPException, Response
-from sqlmodel import Session, select, desc
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, BackgroundTasks, Response
 
 from api.ydb_utils import db, db_executor
 from api.utils.logger import get_logger
-from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
+from api.public.algv2.models import Contact, Student, School, Course, Group, \
     Message, FAQ, Booking, BookingStatusEnum
 from api.utils.messages_utils import MessagesUtils
-from amo_utils.client import AMOClient
-from api.config import settings
-
 
 router = APIRouter()
 
@@ -121,7 +114,7 @@ def get_booking(student_id: str = None, group_id: int = None):
 
 @router.post("/booking", response_model=Union[Booking, dict])
 async def new_booking(bk: Booking, response: Response):
-    bk = MessagesUtils.handle_booking(bk)
+    bk = await MessagesUtils.handle_booking(bk)
     if bk.status == BookingStatusEnum.rjct:
         response.status_code = http.client.NOT_ACCEPTABLE
     elif bk.status == BookingStatusEnum.bad_data:

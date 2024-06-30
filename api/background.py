@@ -1,9 +1,8 @@
 import asyncio
-import json
 import traceback
 
-from amo_utils.client import AMOClient
-from ai_utils.client import AIClient
+from api.amo_utils.client import AMOClient
+from api.ai_utils.client import AIClient
 from api.utils.logger import get_logger
 from api.ydb_utils import db_executor
 from api.config import settings

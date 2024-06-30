@@ -1,3 +1,4 @@
+from typing import Optional
 import datetime
 import json
 import logging
@@ -5,7 +6,7 @@ import uuid
 
 
 import ydb
-from api.public.algv2.models import Contact, Booking, Message, Student
+from api.public.algv2.models import Contact, Booking, Message, Student, Course
 from api.utils.logger import get_logger
 
 logging.getLogger('ydb').setLevel(logging.INFO)
@@ -147,7 +148,7 @@ class DBExecutor:
         logger.debug(f"lead_id = {lead_id}")
         return lead_id
 
-    def get_school(self, school_id=None, school_number=None):
+    def get_school(self, school_id=None, school_number=None) -> list[dict]:
         sql = 'SELECT * FROM i_school WHERE 1 = 1 '
         if school_id is not None:
             sql += f' AND id = {school_id} '
@@ -155,6 +156,16 @@ class DBExecutor:
             sql += f' AND number = {int(school_number)}'
         result = db.execute_query(sql)[0].rows
         return result
+
+    def get_course(self, course_id) -> Optional[Course]:
+        get_course_sql = f'SELECT c.* FROM i_course AS c WHERE c.id = {course_id}'
+        result = db.execute_query(get_course_sql)[0].rows
+        logger.debug(f'result = {result}')
+        if not result:
+            return None
+        result = Course(**result[0])
+        return result
+
 
 
 db_executor = DBExecutor(db=db)

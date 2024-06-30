@@ -1,4 +1,3 @@
-import http.client
 from fastapi import APIRouter, Response
 from api.utils.logger import get_logger
 
@@ -7,7 +6,6 @@ router = APIRouter()
 
 logger = get_logger(__name__)
 
-from ai_utils.client import get_ai_client
 
 @router.post("/webhook")
 async def handle_webhook(wcrm_data: dict, response: Response):

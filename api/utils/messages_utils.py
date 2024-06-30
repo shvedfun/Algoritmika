@@ -2,13 +2,14 @@ import http
 import traceback
 from datetime import datetime
 
-from api.public.algv2.models import PhoneMessage, Message, Contact, Booking, BookingStatusEnum
+from api.public.algv2.models import PhoneMessage, Message, Contact, Booking, BookingStatusEnum, School, Course
 from api.ydb_utils import db_executor
-from amo_utils.client import AMOClient
-from ai_utils.client import get_ai_client, AIClient
+from api.amo_utils.client import AMOClient
+from api.ai_utils.client import get_ai_client, AIClient
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupClient, get_wazzup_client
+from api.wazzup.wazzup_utils import get_wazzup_client
 from api.config import settings
+from api.public.algv2.at_models import Booking as AtBooking
 
 logger = get_logger(__name__)
 
@@ -50,28 +51,45 @@ class MessagesUtils:
 
     @staticmethod
     async def handle_booking(bk: Booking):
-        amo_client = AMOClient(url_prefix=settings.AMO_URL, long_token=settings.AMO_TOKEN, )
         # exists_capacity = get_group_capacity_exists(group_id)
-        tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+        tst = datetime.utcnow().replace(microsecond=0, tzinfo=None)
         if not bk.created:
             bk.created = tst
         bk.updated = tst
-        group = ydb_executor.get_group(bk.group_id)
+        group = db_executor.get_group(bk.group_id)
         logger.debug(f'group = {group}')
         if not group:
             bk.status = BookingStatusEnum.bad_data
             return bk
-        n_book = ydb_executor.get_number_booking(bk.group_id)
+        n_book = db_executor.get_number_booking(bk.group_id)
         logger.debug(f'n_book = {n_book}')
         if n_book < group.get('capacity', -1):
             bk.status = BookingStatusEnum.ok
         else:
             bk.status = BookingStatusEnum.rjct
             return bk
-        ydb_executor.upsert_booking(bk)
-        lead_id = ydb_executor.get_lead_id_from_student_id(bk.student_id)
+        db_executor.upsert_booking(bk)
+
+        lead_id = db_executor.get_lead_id_from_student_id(bk.student_id)
+
+        amo_client = AMOClient(url_prefix=settings.AMO_URL, long_token=settings.AMO_TOKEN, )
         if lead_id:
             await amo_client.lead_done(lead_id)
+
+        student = db_executor.get_student(bk.student_id)
+        school = db_executor.get_school(school_id=group.school_id)
+        school = School(**school[0])
+        course = db_executor.get_course(course_id=group.course_id)
+        at_booking_data = {
+            "student": student.first_name + " " + student.last_name,
+            "student_age": str(student.age),
+            "school": school.name,
+            "group": course.name + group.teacher + group.schedule,
+            "accept_navigator": False,
+        }
+        at_booking = AtBooking(**at_booking_data)
+        logger.debug(f'at_booking = {at_booking}')
+        at_booking.save()
         return bk
 
 
