@@ -50,23 +50,28 @@ class MessagesUtils:
 
     @staticmethod
     async def handle_booking(bk: Booking):
-        result = {}
-        # tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
-        # if not bk.created:
-        #     bk.created = tst
-        # bk.updated = tst
-        # group = db_executor.get_group(bk.group_id)
-        # logger.debug(f'group = {group}')
-        # result['group'] = group
-        # n_book = db_executor.get_number_booking(bk.group_id)
-        # logger.debug(f'n_book = {n_book}')
-        # if n_book < group.get('capacity', -1):
-        #     bk.status = BookingStatusEnum.ok
-        # else:
-        #     bk.status = BookingStatusEnum.rjct
-        #     return bk
-        # db_executor.upsert_booking(bk)
-
-        return result
+        amo_client = AMOClient(url_prefix=settings.AMO_URL, long_token=settings.AMO_TOKEN, )
+        # exists_capacity = get_group_capacity_exists(group_id)
+        tst = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=None)
+        if not bk.created:
+            bk.created = tst
+        bk.updated = tst
+        group = ydb_executor.get_group(bk.group_id)
+        logger.debug(f'group = {group}')
+        if not group:
+            bk.status = BookingStatusEnum.bad_data
+            return bk
+        n_book = ydb_executor.get_number_booking(bk.group_id)
+        logger.debug(f'n_book = {n_book}')
+        if n_book < group.get('capacity', -1):
+            bk.status = BookingStatusEnum.ok
+        else:
+            bk.status = BookingStatusEnum.rjct
+            return bk
+        ydb_executor.upsert_booking(bk)
+        lead_id = ydb_executor.get_lead_id_from_student_id(bk.student_id)
+        if lead_id:
+            await amo_client.lead_done(lead_id)
+        return bk
 
 
