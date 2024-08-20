@@ -7,15 +7,15 @@ import traceback
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
 
-client = os.getenv("client")
-
 logger = get_logger(__name__)
 
-with open("amo_conf.json", "r") as f:
+client = os.getenv("CLIENT")
+
+with open("amo_utils/amo_conf.json", "r") as f:
     conf = json.loads(f.read())
 
 conf = conf[client]
-pipelines = conf["piplines"]
+pipelines = conf["pipelines"]
 for k, v in pipelines.items():
     pipelines[k] = int(v)
 
