@@ -1,13 +1,29 @@
 import http
 import json
+import os
 import re
 import traceback
 
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
-import requests
+
+client = os.getenv("client")
 
 logger = get_logger(__name__)
+
+with open("amo_conf.json", "r") as f:
+    conf = json.loads(f.read())
+
+conf = conf[client]
+pipelines = conf["piplines"]
+for k, v in pipelines.items():
+    pipelines[k] = int(v)
+
+pipelines_statuses = conf["pipelines_statuses"]
+new_pipelines_statuses = {}
+for k, v in pipelines_statuses.items():
+    new_pipelines_statuses[int(k)] = v
+pipelines_statuses = new_pipelines_statuses
 
 
 class AMOClientData:
@@ -17,31 +33,33 @@ class AMOClientData:
         "pipelines": "/api/v4/leads/pipelines",
         "contacts": "/api/v4/contacts",
     }
-    pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310, 'Записаны': 8294854}
-    pipelines_statuses = {
-        8164598: {
-            "Неразобранное": 66751006,
-            "Первичный контакт": 66751010,
-            "Переговоры": 66751014,
-        },
-        8177166: {
-            "Неразобранное": 66838994,
-            "Первичный контакт": 66838998,
-            "Переговоры": 66839002,
-            "Успешно реализовано": 142,
-            "Закрыто и не реализовано": 143
-        },
-        8232310: {
-            "Неразобранное": 67221122,
-            "Первичный контакт": 67221126,
-            "Переговоры": 67221130,
-            "Принимают решение": 67221134,
-        },
-        8294854: {
-            "Первичный контакт": 67655354,
-            "Успешно реализовано": 142
-        }
-    }
+    pipelines = pipelines
+    pipelines_statuses = pipelines_statuses
+    # pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310, 'Записаны': 8294854}
+    # pipelines_statuses = {
+    #     8164598: {
+    #         "Неразобранное": 66751006,
+    #         "Первичный контакт": 66751010,
+    #         "Переговоры": 66751014,
+    #     },
+    #     8177166: {
+    #         "Неразобранное": 66838994,
+    #         "Первичный контакт": 66838998,
+    #         "Переговоры": 66839002,
+    #         "Успешно реализовано": 142,
+    #         "Закрыто и не реализовано": 143
+    #     },
+    #     8232310: {
+    #         "Неразобранное": 67221122,
+    #         "Первичный контакт": 67221126,
+    #         "Переговоры": 67221130,
+    #         "Принимают решение": 67221134,
+    #     },
+    #     8294854: {
+    #         "Первичный контакт": 67655354,
+    #         "Успешно реализовано": 142
+    #     }
+    # }
 
 
 class AMOClientStatic:
