@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from api.ydb_utils import db, db_executor
 from api.utils.logger import get_logger
 from api.public.algv2.models import Contact, Student, StudentStatus, School, Course, Group, \
-    Message, FAQ, Booking, BookingStatusEnum
+    Message, FAQ, Booking, BookingStatusEnum, UpdateContactStatus
 from api.utils.messages_utils import MessagesUtils
 from amo_utils.client import AMOClient
 from api.config import settings
@@ -225,4 +225,19 @@ def get_faq(school_id: int = None):
     results = []
     for r in result:
         results.append(FAQ(**r))
+    return result
+
+@router.post("/update_contact_status", response_model=dict)
+async def update_contact_status(data: UpdateContactStatus):
+    logger.debug('get data %r', data)
+    amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
+    result = None
+    lead_id = db_executor.get_lead_id_from_contact_id(data.contact_id)
+    if lead_id:
+        try:
+            result = await amo_client.update_lead_status(lead_id, data.status)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f'{e} parameters = {data}')
+    else:
+        raise HTTPException(status_code=404, detail=f"lead not fount by contact id = {data.contact_id}")
     return result

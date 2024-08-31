@@ -115,3 +115,9 @@ class WhatCrmMessage(BaseModel):
 
     def get_text(self):
         return "Проверочный текст"
+
+
+class UpdateContactStatus(BaseModel):
+    contact_id: int
+    status: int
+    detail: dict

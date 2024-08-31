@@ -9,7 +9,7 @@ from aiohttp import ClientSession
 
 logger = get_logger(__name__)
 
-client = os.getenv("CLIENT")
+client = os.getenv("CLIENT", "krasnoyarsk") #TODO убрать "krasnoyarsk"
 
 with open("amo_utils/amo_conf.json", "r") as f:
     conf = json.loads(f.read())
@@ -187,8 +187,6 @@ class AMOClient(AMOClientData, AMOClientStatic):
         status, result = await self._request_patch(suffics_name="leads", json_data=json_data, **kwargs)
         return result
 
-
-
     async def get_piplines(self, **kwargs):
         result = await self._request_get(suffics_name="pipelines", **kwargs)
         return result
@@ -208,4 +206,31 @@ class AMOClient(AMOClientData, AMOClientStatic):
         logger.debug(f'data_patch_leads = {data_patch_leads}')
         result = await self.patch_leads(json_data=data_patch_leads)
         return result
+
+    async def update_lead_status(self, lead_id, status):
+        new_pipeline_name = self._get_new_pipeline_name(status)
+        new_status_name = self._get_new_status_name(status)
+        new_pipeline_id = self.pipelines[new_pipeline_name]
+        new_status_id = self.pipelines_statuses[new_pipeline_id][new_status_name]
+        data_patch_leads = [{'id': lead_id,
+                             'pipeline_id': new_pipeline_id,
+                             'status_id': new_status_id,
+                             },
+                            ]
+        logger.debug(f'data_patch_leads = {data_patch_leads}')
+        result = await self.patch_leads(json_data=data_patch_leads)
+        return result
+
+    _conv_code2name = {
+        1: "Помощь",
+        2: "Отказ",
+        3: "Молчит"
+    }
+
+
+    def _get_new_pipeline_name(self, status):
+        return self._conv_code2name.get(status)
+
+    def _get_new_status_name(self, status):
+        return self._conv_code2name.get(status)
 

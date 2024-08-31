@@ -133,6 +133,17 @@ class DBExecutor:
             result = None
         return result
 
+    def get_lead_id_from_contact_id(self, contact_id) -> int | None:
+        lead_id = None
+        contact = self.get_contact(contact_id=contact_id)
+        logger.debug(f'contact = {contact}')
+        if contact:
+            contact = contact[0]
+            lead_id = contact.get('amo_lead_id')
+        logger.debug(f"lead_id = {lead_id}")
+        return lead_id
+
+
     def get_lead_id_from_student_id(self, student_id) -> int:
         lead_id = None
         student = self.get_student(student_id)
