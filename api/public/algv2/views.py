@@ -231,7 +231,7 @@ def get_faq(school_id: int = None):
 async def update_contact_status(data: UpdateContactStatus):
     logger.debug('get data %r', data)
     amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
-    result = None
+    result = {}
     lead_id = db_executor.get_lead_id_from_contact_id(data.contact_id)
     if lead_id:
         try:

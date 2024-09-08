@@ -4,6 +4,7 @@ import os
 import re
 import traceback
 
+
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
 
@@ -11,7 +12,7 @@ logger = get_logger(__name__)
 
 client = os.getenv("CLIENT", "krasnoyarsk") #TODO убрать "krasnoyarsk"
 
-with open("amo_utils/amo_conf.json", "r") as f:
+with open("amo_utils/amo_conf.json", "r", encoding="utf-8") as f:
     conf = json.loads(f.read())
 
 conf = conf[client]
@@ -33,33 +34,9 @@ class AMOClientData:
         "pipelines": "/api/v4/leads/pipelines",
         "contacts": "/api/v4/contacts",
     }
+
     pipelines = pipelines
     pipelines_statuses = pipelines_statuses
-    # pipelines = {'default': 8164598, 'AI': 8177166, 'Human': 8232310, 'Записаны': 8294854}
-    # pipelines_statuses = {
-    #     8164598: {
-    #         "Неразобранное": 66751006,
-    #         "Первичный контакт": 66751010,
-    #         "Переговоры": 66751014,
-    #     },
-    #     8177166: {
-    #         "Неразобранное": 66838994,
-    #         "Первичный контакт": 66838998,
-    #         "Переговоры": 66839002,
-    #         "Успешно реализовано": 142,
-    #         "Закрыто и не реализовано": 143
-    #     },
-    #     8232310: {
-    #         "Неразобранное": 67221122,
-    #         "Первичный контакт": 67221126,
-    #         "Переговоры": 67221130,
-    #         "Принимают решение": 67221134,
-    #     },
-    #     8294854: {
-    #         "Первичный контакт": 67655354,
-    #         "Успешно реализовано": 142
-    #     }
-    # }
 
 
 class AMOClientStatic:
@@ -211,7 +188,16 @@ class AMOClient(AMOClientData, AMOClientStatic):
         new_pipeline_name = self._get_new_pipeline_name(status)
         new_status_name = self._get_new_status_name(status)
         new_pipeline_id = self.pipelines[new_pipeline_name]
+        logger.debug("new_pipeline_id=%r, new_status_name=%r", new_pipeline_id, new_status_name)
+        logger.debug(f'self.pipelines_statuses[new_pipeline_id] = {self.pipelines_statuses[new_pipeline_id]}')
         new_status_id = self.pipelines_statuses[new_pipeline_id][new_status_name]
+        logger.debug(
+            "new_pipeline_name=%r, new_status_name=%r, new_pipeline_id=%r, new_status_id=%r",
+            new_pipeline_name,
+            new_status_name,
+            new_pipeline_id,
+            new_status_id
+        )
         data_patch_leads = [{'id': lead_id,
                              'pipeline_id': new_pipeline_id,
                              'status_id': new_status_id,
@@ -221,16 +207,18 @@ class AMOClient(AMOClientData, AMOClientStatic):
         result = await self.patch_leads(json_data=data_patch_leads)
         return result
 
+    @classmethod
+    def _get_new_pipeline_name(cls, status):
+        return cls._conv_code2name.get(status, {}).get("pipeline")
+
+    @classmethod
+    def _get_new_status_name(cls, status):
+        return cls._conv_code2name.get(status, {}).get("pipeline_status")
+
     _conv_code2name = {
-        1: "Помощь",
-        2: "Отказ",
-        3: "Молчит"
+        1: {"name": "Выбрал курс", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
+        2: {"name": "Нужна связь с менеджером", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
+        3: {"name": "Не отвечает", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
+        4: {"name": "Отказ", "pipeline": "Human", "pipeline_status": "Первичный контакт"}
     }
-
-
-    def _get_new_pipeline_name(self, status):
-        return self._conv_code2name.get(status)
-
-    def _get_new_status_name(self, status):
-        return self._conv_code2name.get(status)
 
