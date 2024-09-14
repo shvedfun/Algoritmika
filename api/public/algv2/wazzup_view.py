@@ -1,7 +1,7 @@
 import http.client
 from fastapi import APIRouter, Response, BackgroundTasks
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupUtils
+from api.whatsapp.wazzup_utils import WazzupUtils
 from api.public.algv2.models import PhoneMessage
 from api.utils.messages_utils import MessagesUtils
 

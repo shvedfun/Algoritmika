@@ -49,7 +49,7 @@ api.include_router(
 )
 api.include_router(
     wazzup_view.router,
-    prefix='/api/v1/wazzup',
+    prefix='/api/v1/whatsapp',
     tags=["Wazzup"],
     # dependencies=[Depends(authent)]
 )

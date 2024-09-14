@@ -12,6 +12,7 @@ from api.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+
 class WazzupUtils:
     @staticmethod
     def handle_message_from_hook(body_hook: dict) -> list[PhoneMessage]:
@@ -124,9 +125,9 @@ class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils):
         }
         status, result = await self._request_post("message", json_data=payload)
         logger.debug(f'status = {status} result = {result}')
-        return status
+        return status, result
 
 
-def get_wazzup_client():
+def get_whatsapp_client() -> WazzupClient:
     return WazzupClient(url=settings.WAZZUP_URL, token=settings.WAZZUP_TOKEN)
 

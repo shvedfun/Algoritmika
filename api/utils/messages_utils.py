@@ -7,7 +7,7 @@ from api.ydb_utils import db_executor
 from amo_utils.client import AMOClient
 from ai_utils.client import get_ai_client, AIClient
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupClient, get_wazzup_client
+from api.whatsapp.wazzup_utils import WazzupClient, get_whatsapp_client
 from api.config import settings
 
 logger = get_logger(__name__)
@@ -32,7 +32,7 @@ class MessagesUtils:
 
     @staticmethod
     async def handle_message_from_ai(messages: list[Message]):
-        wazzup_client = get_wazzup_client()
+        whatsapp_client = get_whatsapp_client()
         for message in messages:
             contact = db_executor.get_contact(contact_id=message.contact_id)
             if contact:
@@ -41,7 +41,7 @@ class MessagesUtils:
                 text = message.text
                 phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
                 logger.debug(f'send message 2 wazzup {phone_message}')
-                status = await wazzup_client.send_message(phone_message)
+                status, result = await whatsapp_client.send_message(phone_message)
 
                 if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):
                     logger.error(f'message not in wazzup {message}')

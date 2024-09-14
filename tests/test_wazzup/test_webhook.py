@@ -3,14 +3,14 @@ import logging
 
 import pytest
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupUtils
+from api.whatsapp.wazzup_utils import WazzupUtils
 
 logger = get_logger(__name__)
 
 @pytest.fixture
 def data_from_webhook():
     datas = []
-    with open("api/wazzup/wazzap_hook_data.json","r", encoding="utf-8") as f:
+    with open("api/whatsapp/wazzap_hook_data.json","r", encoding="utf-8") as f:
         datas = json.loads(f.read())
     # logger.debug(f'result = {datas}')
     return datas
