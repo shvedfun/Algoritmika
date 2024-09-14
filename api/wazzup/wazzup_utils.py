@@ -1,58 +1,65 @@
 import http
 import json
-import datetime
-import traceback
+from abc import ABC, abstractmethod
 
-from aiohttp import ClientSession
+
+from aiohttp import ClientSession, TCPConnector, ClientTimeout
+from typing import Optional
+
+from openai import base_url
+
 from api.config import settings
-
-from api.public.algv2.models import PhoneMessage
+from api.public.algv2.models import Message, Contact, PhoneMessage
 from api.utils.logger import get_logger
+
+from .wazzup_utils import WazzupUtils, WazzupClientStatic, WazzupClientData
 
 logger = get_logger(__name__)
 
 
-class WazzupUtils:
+class WhatAppClient(ABC):
+    @abstractmethod
+    def send_message(self, phone_message: PhoneMessage, request_limit=10, request_timeout=10):
+        pass
+
+class WhatCrm(WhatAppClient):
+    suffics = {'message': '/sendMessage'}
+
     @staticmethod
-    def handle_message_from_hook(body_hook: dict) -> list[PhoneMessage]:
-        results = []
-        for message in body_hook.get('messages', []):
-            if message.get('status') == 'inbound':
-                tst = None
-                text = message.get('text') if message.get('text') else message.get("_data", {}).get("body", "")
-                phone = message.get("chatId").replace("@c.us", "")
-                try:
-                    dt = message.get('dateTime')
-                    if isinstance(dt, str):
-                        dt = dt[:19]
-                        logger.debug(f'dt = {dt}')
-                        try:
-                            tst = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
-                        except Exception as e:
-                            logger.error(f'Error {e} {traceback.format_exc()}')
-                            tst = None
-                    if not tst:
-                        tst = datetime.datetime.fromtimestamp(message.get("timestamp")) if message.get("timestamp") else None
-                except Exception as e:
-                    logger.error(f'Error {e} {traceback.format_exc()}')
-                    tst = None
-                if phone and text and tst:
-                    new_message = PhoneMessage(text=text, phone=phone, created=tst)
-                    results.append(new_message)
-        return results
+    def get_header_token(header_token: str) -> tuple:
+        header, token = tuple(header_token.split())
+        return header, token
+
+    def get_common_headers(self):
+        return {self.token_header: self.token, 'Content-type': 'application/json'}
+
+    def __init__(self):
+        self.base_url = settings.WHATCRM_BASE_URL
+        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN.split())
+
+    async def send_message(self, phone_message: PhoneMessage, request_limit=10, request_timeout=10) -> [Optional[http.HTTPStatus], Optional[dict]]:
+        session_config = {
+            "base_url": self.base_url,
+            "headers": self.get_common_headers(),
+            "connector": TCPConnector(limit=request_limit),
+            "timeout": ClientTimeout(total=request_timeout),
+        }
+        body = {'message': phone_message.text, 'phone': phone_message.phone}
+        request_config = {
+            "method": "POST",
+            "url": f"/instances/{settings.WHATCRM_KEY}/sendMessage",
+            "json": body
+        }
+        status, result = None, None
+        async with ClientSession(**session_config) as session:
+            async with session.request(**request_config) as response:
+                result = await response.json()
+                status = response.status
+                logger.debug('status = %r, body = %r', status, result)
+        return status, result
 
 
-class WazzupClientData:
-    suffics = {
-        "message": "/v3/message",
-    }
-
-
-class WazzupClientStatic:
-    pass
-
-
-class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils):
+class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils, WhatAppClient):
 
     def __init__(self, url, token):
         self.url = url
@@ -124,9 +131,11 @@ class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils):
         }
         status, result = await self._request_post("message", json_data=payload)
         logger.debug(f'status = {status} result = {result}')
-        return status
+        return status, result
 
 
-def get_wazzup_client():
-    return WazzupClient(url=settings.WAZZUP_URL, token=settings.WAZZUP_TOKEN)
+def get_whatsapp_client() -> WhatAppClient:
+    if settings.WHATAPP_CLIENT == "WAZZUP":
+        return WazzupClient(url=settings.WAZZUP_URL, token=settings.WAZZUP_TOKEN)
+    return WhatCrm()
 

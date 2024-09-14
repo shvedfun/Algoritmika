@@ -3,7 +3,7 @@ import logging
 
 import pytest
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupUtils
+from api.whatsapp.wazzup_utils import WazzupUtils
 
 logger = get_logger(__name__)
 

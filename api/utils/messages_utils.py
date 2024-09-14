@@ -7,7 +7,7 @@ from api.ydb_utils import db_executor
 from amo_utils.client import AMOClient
 from ai_utils.client import get_ai_client, AIClient
 from api.utils.logger import get_logger
-from api.wazzup.wazzup_utils import WazzupClient, get_wazzup_client
+from api.whatsapp.clients import get_whatsapp_client
 from api.config import settings
 
 logger = get_logger(__name__)
