@@ -5,3 +5,4 @@ api/config.py
 logs/*
 .pytest_cache
 */__pycache__/*
+health/__pycache__/*
