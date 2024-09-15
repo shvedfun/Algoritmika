@@ -24,7 +24,7 @@ class WhatCrm:
 
     def __init__(self):
         self.url = settings.WHATCRM_URL
-        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN.split())
+        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN)
 
     async def send_message(self, message: Message, contact: Contact) -> [Optional[http.HTTPStatus], Optional[dict]]:
         body = {'message': message.text, 'phone': contact.phone}

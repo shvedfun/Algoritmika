@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession, TCPConnector, ClientTimeout
 from typing import Optional
 
-from openai import base_url
 
 from api.config import settings
 from api.public.algv2.models import Message, Contact, PhoneMessage
@@ -26,16 +25,16 @@ class WhatCrm(WhatAppClient):
     suffics = {'message': '/sendMessage'}
 
     @staticmethod
-    def get_header_token(header_token: str) -> tuple:
-        header, token = tuple(header_token.split())
-        return header, token
+    def get_header_token(header_token_str: str):
+        result = header_token_str.split()
+        return result[0], result[1]
 
     def get_common_headers(self):
         return {self.token_header: self.token, 'Content-type': 'application/json'}
 
     def __init__(self):
         self.base_url = settings.WHATCRM_BASE_URL
-        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN.split())
+        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN)
 
     async def send_message(self, phone_message: PhoneMessage, request_limit=10, request_timeout=10) -> [Optional[http.HTTPStatus], Optional[dict]]:
         session_config = {
@@ -135,7 +134,7 @@ class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils, WhatAppCli
 
 
 def get_whatsapp_client() -> WhatAppClient:
-    if settings.WHATAPP_CLIENT == "WAZZUP":
+    if settings.WHATSAPP_CLIENT == "WAZZUP":
         return WazzupClient(url=settings.WAZZUP_URL, token=settings.WAZZUP_TOKEN)
     return WhatCrm()
 

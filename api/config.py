@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     WHATCRM_BASE_URL: str = "https://api.whatcrm.net/"
     WHATCRM_KEY: str="20119b92306279d58d6da5f7eefdc628/"
     WHATCRM_TOKEN: str = "X-Crm-Token 6a9fb48a08cd959820e783bfdda2e3df"
+    WHATSAPP_CLIENT: str = "WHATCRM"
     AI_URL: str = "http://algoritmica-assistant.turboai.agency"
     AI_TOKEN: str = ""
     AMO_URL: str = 'turboaiagency'
