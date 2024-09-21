@@ -40,7 +40,7 @@ class MessagesUtils:
                 phone = contact.phone
                 text = message.text
                 phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
-                logger.debug(f'send message 2 wazzup {phone_message}')
+                logger.debug(f'send message 2 whatsapp_client phone_message = {phone_message}')
                 status = await whatsapp_client.send_message(phone_message)
 
                 if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):

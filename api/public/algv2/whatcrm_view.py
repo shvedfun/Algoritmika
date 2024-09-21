@@ -1,8 +1,10 @@
-import http.client
-from fastapi import APIRouter, Response
+import http
+from datetime import datetime, timezone
+from fastapi import APIRouter, Response, BackgroundTasks
 from api.utils.logger import get_logger
+from api.utils.messages_utils import MessagesUtils
 
-
+from api.public.algv2.models import PhoneMessage
 router = APIRouter()
 
 logger = get_logger(__name__)
@@ -10,19 +12,16 @@ logger = get_logger(__name__)
 from ai_utils.client import get_ai_client
 
 @router.post("/webhook")
-async def handle_webhook(wcrm_data: dict, response: Response):
-    logger.debug(f'body = {wcrm_data}')
-    # if not wcrm_data.message:
-    #     response.status_code = http.HTTPStatus.OK
-    #     return
-    # phone = wcrm_data.get_phone()
-    # text = wcrm_data.get_text()
-    # contact_id = db_executor.get_contact_id_by_phone(phone)
-    # if contact_id is None:
-    #     logger.warning(f'Не нашел контакт с телефоном {phone}')
-    #     return
-    #
-    # await get_ai_client().send_message2ai(contact_id, text)
-    response.body = wcrm_data
+async def handle_webhook(body: dict, response: Response, background_tasks: BackgroundTasks):
+    logger.debug(f'body = {body}')
+    for message in body.get('messages', []):
+        if message["ack"] == 1 and message["type"] == "chat":
+            text = message['body']
+            phone = message['from'].replace("@c.us", "")
+            tst = datetime.fromtimestamp(message["timestamp"], timezone.utc)
+            new_message = PhoneMessage(text=text, phone=phone, created=tst)
+            logger.debug(f'phone_messages = {new_message}')
+            background_tasks.add_task(MessagesUtils.handle_messages_from_client, [new_message])
+            response.status_code = http.HTTPStatus.CREATED
     return
 

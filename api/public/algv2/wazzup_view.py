@@ -14,6 +14,8 @@ logger = get_logger(__name__)
 
 @router.post("/webhook")
 async def handle_webhook(wazzup_data: dict, response: Response, background_tasks: BackgroundTasks):
+    logger.debug("Exit")
+    return
     logger.debug(f'body = {wazzup_data}')
     phone_messages: list[PhoneMessage] = WazzupUtils.handle_message_from_hook(wazzup_data)
     if phone_messages:
