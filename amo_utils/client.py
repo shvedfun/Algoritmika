@@ -27,7 +27,7 @@ for k, v in pipelines_statuses.items():
 pipelines_statuses = new_pipelines_statuses
 
 
-class AMOClientData:
+class AMOClientData: # TODO переписать под мулти
     base_url = ".amocrm.ru"
     suffics = {
         "leads": "/api/v4/leads",
@@ -35,8 +35,8 @@ class AMOClientData:
         "contacts": "/api/v4/contacts",
     }
 
-    pipelines = pipelines
-    pipelines_statuses = pipelines_statuses
+    # pipelines = pipelines
+    # pipelines_statuses = pipelines_statuses
 
 
 class AMOClientStatic:
@@ -100,9 +100,11 @@ class AMOClientStatic:
 
 class AMOClient(AMOClientData, AMOClientStatic):
 
-    def __init__(self, url_prefix, long_token):
+    def __init__(self, url_prefix, long_token, pipelines, pipelines_statuses):
         self.url = "https://" + url_prefix + self.base_url
         self.token = long_token
+        self.pipelines = pipelines
+        self.pipelines_statuses = pipelines_statuses
 
     def _get_headers(self) -> dict:
         headers = {

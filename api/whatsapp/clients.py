@@ -32,9 +32,10 @@ class WhatCrm(WhatAppClient):
     def get_common_headers(self):
         return {self.token_header: self.token, 'Content-type': 'application/json'}
 
-    def __init__(self):
-        self.base_url = settings.WHATCRM_BASE_URL + f"instances/{settings.WHATCRM_KEY}"
-        self.token_header, self.token = self.get_header_token(settings.WHATCRM_TOKEN)
+    def __init__(self, partner):
+        self.partner = partner
+        self.base_url = settings.WHATCRM_BASE_URL + f"instances/{settings.partners[self.partner]['WHATCRM_KEY']}"
+        self.token_header, self.token = self.get_header_token(settings.partners[self.partner]["WHATCRM_TOKEN"])
 
     async def send_message(self, phone_message: PhoneMessage, request_limit=10, request_timeout=10) -> [Optional[http.HTTPStatus], Optional[dict]]:
         session_config = {
@@ -133,8 +134,8 @@ class WazzupClient(WazzupClientData, WazzupClientStatic, WazzupUtils, WhatAppCli
         return status, result
 
 
-def get_whatsapp_client() -> WhatAppClient:
+def get_whatsapp_client(partner) -> WhatAppClient:
     if settings.WHATSAPP_CLIENT == "WAZZUP":
         return WazzupClient(url=settings.WAZZUP_URL, token=settings.WAZZUP_TOKEN)
-    return WhatCrm()
+    return WhatCrm(partner)
 

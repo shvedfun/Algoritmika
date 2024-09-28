@@ -32,7 +32,6 @@ class MessagesUtils:
 
     @staticmethod
     async def handle_message_from_ai(messages: list[Message]):
-        whatsapp_client = get_whatsapp_client()
         for message in messages:
             contact = db_executor.get_contact(contact_id=message.contact_id)
             if contact:
@@ -41,10 +40,11 @@ class MessagesUtils:
                 text = message.text
                 phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
                 logger.debug(f'send message 2 whatsapp_client phone_message = {phone_message}')
+                whatsapp_client = get_whatsapp_client(contact.partner)
                 status = await whatsapp_client.send_message(phone_message)
 
                 if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):
-                    logger.error(f'message not in wazzup {message}')
+                    logger.error(f'message not in whatsapp {message}')
                 db_executor.insert_message(message)
         return
 
