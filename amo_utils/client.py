@@ -10,7 +10,7 @@ from aiohttp import ClientSession
 
 logger = get_logger(__name__)
 
-client = os.getenv("CLIENT", "krasnoyarsk") #TODO убрать "krasnoyarsk"
+client = os.getenv("CLIENT", "turboagency")
 
 with open("amo_utils/amo_conf.json", "r", encoding="utf-8") as f:
     conf = json.loads(f.read())
