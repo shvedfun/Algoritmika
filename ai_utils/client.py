@@ -89,7 +89,8 @@ class AIClient(AIClientData, AIClientStatic):
             "user_id": contact.get("id"),
             "name": contact.get("name"),
             "surname": contact.get("last_name"),
-            "params": contact.get("params")
+            "params": contact.get("params"),
+            "partner": contact.get("partner"),
         }
         status, result = await self._request_post(url, payload)
         return result

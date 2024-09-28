@@ -63,12 +63,13 @@ class BackgroundManager:
                 pipelines_statuses=params["pipelines_statuses"],
             )
             logger.info('partner %r', partner)
-            await self._do_new_lead(amo_client)
+            await self._do_new_lead(amo_client, partner)
 
 
 
-    async def _do_new_lead(self, amo_client):
-        pipeline_id = amo_client.pipelines.get('default')
+    async def _do_new_lead(self, amo_client: AMOClient, partner):
+        pipeline_id = amo_client.pipelines_get('default')
+        logger.debug('amo_client.pipelines = %r', amo_client.pipelines)
         result = await amo_client.get_leads(pipeline_id=pipeline_id)
         if result:
             logger.debug(f'result get leads = {result}')
@@ -76,18 +77,18 @@ class BackgroundManager:
         schools = db_executor.get_school()
         for lead in leads:
             logger.debug(f'schools = {schools}')
-            if lead.get('status_id', 0) == amo_client.pipelines_statuses[pipeline_id]["Первичный контакт"]:
+            if lead.get('status_id', 0) == amo_client.pipelines_statuses[str(pipeline_id)]["Первичный контакт"]:
                 contacts = AMOClient.get_contact_ids_from_dict_lead(lead)
                 main_contact_id = amo_client.get_main_contact_id(contacts)
                 logger.debug(f'main_contact_id = {main_contact_id}')
                 if main_contact_id:
                     contact = await amo_client.get_contact(main_contact_id)
-                    validated_contact = amo_client.get_validated_contact(contact, lead, schools)
+                    validated_contact = amo_client.get_validated_contact(contact, lead, schools, partner)
                     logger.info(f'validated_contact = {validated_contact}')
                     if validated_contact['phone']:
                         db_executor.upsert_contact_from_amo(validated_contact)
-                        new_pipeline_id = amo_client.pipelines['AI']
-                        new_status_id = amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
+                        new_pipeline_id = amo_client.pipelines_get('AI')
+                        new_status_id = amo_client.pipelines_statuses[str(new_pipeline_id)]["Первичный контакт"]
                         data_patch_leads = [{'id': lead['id'],
                                              'pipeline_id': new_pipeline_id,
                                              'status_id': new_status_id,
@@ -99,7 +100,7 @@ class BackgroundManager:
                         ai_result = await self.aiclient.send_newcontact2ai(validated_contact)
 
                     else:
-                        new_pipeline_id = amo_client.pipelines['Human']
+                        new_pipeline_id = amo_client.pipelines_get('Human')
                         new_status_id = amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
                         data_patch_leads = [{'id': lead['id'],
                                              'pipeline_id': new_pipeline_id,

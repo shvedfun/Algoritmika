@@ -38,6 +38,7 @@ class Contact(BaseModel):
     email: str = None
     params: dict | None = None
     status: ContactStatusEnum = ContactStatusEnum.cold
+    partner: str | None = None
 
 
 

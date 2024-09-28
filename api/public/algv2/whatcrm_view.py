@@ -13,7 +13,7 @@ from ai_utils.client import get_ai_client
 
 @router.post("/webhook")
 async def handle_webhook(body: dict, response: Response, background_tasks: BackgroundTasks):
-    logger.debug(f'body = {body}')
+    logger.debug(f'whatcrm webhook body = {body}')
     for message in body.get('messages', []):
         if message["ack"] == 1 and message["type"] == "chat":
             text = message['body']

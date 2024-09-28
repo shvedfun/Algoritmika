@@ -34,7 +34,8 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-partners = {"turboagency": {
+partners = {
+    "turboagency": {
         "WHATCRM_KEY": "d6714798e3ee84633693c5b71705b2ea",
         "WHATCRM_TOKEN": "X-Crm-Token 6a9fb48a08cd959820e783bfdda2e3df",
         "AMO_URL": "turboaiagency",
@@ -71,8 +72,46 @@ partners = {"turboagency": {
                 "Успешно реализовано": 142
             }
         },
+    },
+    "dandykit": {
+        "WHATCRM_KEY": "d6714798e3ee84633693c5b71705b2ea",
+        "WHATCRM_TOKEN": "X-Crm-Token 6a9fb48a08cd959820e783bfdda2e3df",
+        "AMO_URL": "dandykit",
+        "AMO_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImMzMTkzZDAyY2E0ODQ4YTc2ZTY0YjQ0NDNmZjlhZDc0YWMxYWVlMTI4NTE5NTUyNTQ0YzExM2ZiMjg2YjhiOTc5MDBiMTkzYmQxZTU0Zjk5In0.eyJhdWQiOiIxOTMwYzNhZS05ODBjLTRhNjItOTZiYS02MTA4NWFlMTJhNGIiLCJqdGkiOiJjMzE5M2QwMmNhNDg0OGE3NmU2NGI0NDQzZmY5YWQ3NGFjMWFlZTEyODUxOTU1MjU0NGMxMTNmYjI4NmI4Yjk3OTAwYjE5M2JkMWU1NGY5OSIsImlhdCI6MTcyNzU0MjY2NywibmJmIjoxNzI3NTQyNjY3LCJleHAiOjE4ODUyNDgwMDAsInN1YiI6IjExNTc4NDY2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTc3MTE0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiOWY4MmE2MTEtMjc0Zi00YzI5LWFiNDAtNGNjNDU3YzE2NjAxIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.pPPiO1aGOqGiv76PtnVsk_mhfyblmpTj5wXlX16qsey73hNtq6PYg1gqfBg0Su87aim0DuiHmodMt-zAe3dHcn4It731vSeko7-Jf2YEJ6k7_Nhs7-DWTjqaKZeVp_MuCLM0Hj6H99bQxWRQCFik957-KbbotO3bOi0405i-8AC3fL2izJsyzCPDPpTfPC6OFCQsjSmvSlavV4t6CpiZ9eS5ZY6mHb52dWBJisbmTOGox5qd8o8n-6H8xMyVsozGbd-ASbCueAHB7COEWKHbV5pmbMv8LtUPUcLp7THwU-4gMoEkKtskK-k44z3wXfX-72589SHaDf8kzJwTEvvq7w",
+        "pipelines": {
+            "default": "8164598",
+            "AI": "8177166",
+            "Human": "8232310",
+            "Записаны": "8294854",
+            "Не отвечает": "8232310",
+            "Отказ": "8232310"
+        },
+        "pipelines_statuses": {
+            "8164598": {
+                "Неразобранное": 66751006,
+                "Первичный контакт": 66751010,
+                "Переговоры": 66751014
+            },
+            "8177166": {
+                "Неразобранное": 66838994,
+                "Первичный контакт": 66838998,
+                "Переговоры": 66839002,
+                "Успешно реализовано": 142,
+                "Закрыто и не реализовано": 143
+            },
+            "8232310": {
+                "Неразобранное": 67221122,
+                "Первичный контакт": 67221126,
+                "Переговоры": 67221130,
+                "Принимают решение": 67221134
+            },
+            "8294854": {
+                "Первичный контакт": 67655354,
+                "Успешно реализовано": 142
+            }
+        },
+    },
 
-}
 }
 settings.partners = partners
 

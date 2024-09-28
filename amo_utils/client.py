@@ -59,7 +59,7 @@ class AMOClientStatic:
         return result
 
     @staticmethod
-    def get_validated_contact(amo_contact: dict, lead: dict, schools: list[dict]) -> dict:
+    def get_validated_contact(amo_contact: dict, lead: dict, schools: list[dict], partner: str) -> dict:
         contact = {}
         contact['id'] = amo_contact['id']
         contact['amo_id'] = amo_contact['id']
@@ -68,6 +68,7 @@ class AMOClientStatic:
         contact['last_name'] = amo_contact['last_name']
         contact['name'] = amo_contact['name']
         contact['phone'] = None
+        contact['partner'] = partner
         params = {}
         for cust_f in amo_contact["custom_fields_values"]:
             if cust_f.get("field_code") == "PHONE":
@@ -208,6 +209,9 @@ class AMOClient(AMOClientData, AMOClientStatic):
         logger.debug(f'data_patch_leads = {data_patch_leads}')
         result = await self.patch_leads(json_data=data_patch_leads)
         return result
+
+    def pipelines_get(self, key):
+        return int(self.pipelines[key])
 
     @classmethod
     def _get_new_pipeline_name(cls, status):
