@@ -222,9 +222,9 @@ class AMOClient(AMOClientData, AMOClientStatic):
         return cls._conv_code2name.get(status, {}).get("pipeline_status")
 
     _conv_code2name = {
-        1: {"name": "Выбрал курс", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
+        1: {"name": "Выбрал курс", "pipeline": "Записаны", "pipeline_status": "Первичный контакт"},
         2: {"name": "Нужна связь с менеджером", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
-        3: {"name": "Не отвечает", "pipeline": "Human", "pipeline_status": "Первичный контакт"},
-        4: {"name": "Отказ", "pipeline": "Human", "pipeline_status": "Первичный контакт"}
+        3: {"name": "Не отвечает", "pipeline": "Не отвечает", "pipeline_status": "Первичный контакт"},
+        4: {"name": "Отказ", "pipeline": "Отказ", "pipeline_status": "Первичный контакт"}
     }
 
