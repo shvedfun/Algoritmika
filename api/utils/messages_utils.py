@@ -18,9 +18,13 @@ class MessagesUtils:
     async def handle_messages_from_client(phone_messages: list[PhoneMessage]):
         ai_client: AIClient = get_ai_client()
         for phone_message in phone_messages:
-            contact: list[Contact] = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
-            if contact:
-                message = Message(contact_id=contact, text=phone_message.text,
+            contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
+            if contact_id:
+                if phone_message.phone == phone_message.author:
+                    db_executor.disable_contact(contact_id)
+                    logger.debug("disable contact_id = %r",contact_id)
+                    return
+                message = Message(contact_id=contact_id, text=phone_message.text,
                                   created=phone_message.created,
                                   ai_id="",)
                 try:
@@ -35,17 +39,19 @@ class MessagesUtils:
         for message in messages:
             contact = db_executor.get_contact(contact_id=message.contact_id)
             if contact:
-                contact = contact[0]
-                phone = contact.phone
-                text = message.text
-                phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
-                logger.debug(f'send message 2 whatsapp_client phone_message = {phone_message}')
-                whatsapp_client = get_whatsapp_client(contact.partner)
-                status = await whatsapp_client.send_message(phone_message)
+                if not contact.params.get("disable", False):
+                    phone = contact.phone
+                    text = message.text
+                    phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
+                    logger.debug(f'send message 2 whatsapp_client phone_message = {phone_message}')
+                    whatsapp_client = get_whatsapp_client(contact.partner)
+                    status = await whatsapp_client.send_message(phone_message)
 
-                if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):
-                    logger.error(f'message not in whatsapp {message}')
-                db_executor.insert_message(message)
+                    if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):
+                        logger.error(f'message not in whatsapp {message}')
+                    db_executor.insert_message(message)
+                else:
+                    logger.debug("Not send AI message to disabled contact = %r", contact)
         return
 
     @staticmethod
