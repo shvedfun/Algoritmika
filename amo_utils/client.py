@@ -3,7 +3,7 @@ import json
 import os
 import re
 import traceback
-
+from datetime import datetime
 
 from api.utils.logger import get_logger
 from aiohttp import ClientSession
@@ -61,7 +61,7 @@ class AMOClientStatic:
     @staticmethod
     def get_validated_contact(amo_contact: dict, lead: dict, schools: list[dict], partner: str) -> dict:
         contact = {}
-        contact['id'] = amo_contact['id']
+        contact['id'] = int(datetime.utcnow().timestamp()*10**6) #amo_contact['id']
         contact['amo_id'] = amo_contact['id']
         contact['amo_lead_id'] = lead['id']
         contact['first_name'] = amo_contact['first_name']
@@ -202,12 +202,13 @@ class AMOClient(AMOClientData, AMOClientStatic):
             new_status_id
         )
         data_patch_leads = [{'id': lead_id,
-                             'pipeline_id': new_pipeline_id,
+                             'pipeline_id': int(new_pipeline_id),
                              'status_id': new_status_id,
                              },
                             ]
         logger.debug(f'data_patch_leads = {data_patch_leads}')
         result = await self.patch_leads(json_data=data_patch_leads)
+
         return result
 
     def pipelines_get(self, key):

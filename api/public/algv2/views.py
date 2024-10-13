@@ -15,8 +15,7 @@ from api.public.algv2.models import Contact, Student, StudentStatus, School, Cou
     Message, FAQ, Booking, BookingStatusEnum, UpdateContactStatus
 from api.utils.messages_utils import MessagesUtils
 from amo_utils.client import AMOClient
-from api.config import settings
-
+from api.config import settings, partners
 
 router = APIRouter()
 
@@ -229,15 +228,35 @@ def get_faq(school_id: int = None):
 
 @router.post("/update_contact_status", response_model=dict)
 async def update_contact_status(data: UpdateContactStatus):
-    logger.debug('get data %r', data)
-    amo_client = AMOClient(url_prefix= settings.AMO_URL, long_token= settings.AMO_TOKEN,)
+    logger.debug('update_contact_status get data = %r', data)
     result = {}
-    lead_id = db_executor.get_lead_id_from_contact_id(data.contact_id)
-    if lead_id:
+    contact = db_executor.get_contact(contact_id=data.contact_id)
+    lead_id = None
+    partner = None
+    if contact:
+        contact = contact[0]
+        lead_id = contact.get('amo_lead_id')
+        partner = contact.get('partner')
+    # lead_id = db_executor.get_lead_id_from_contact_id(data.contact_id)
+    if lead_id and partner:
         try:
+            pipelines = settings.partners[partner]["pipelines"]
+            pipelines_statuses = settings.partners[partner]["pipelines_statuses"]
+            amo_client = AMOClient(
+                url_prefix=settings.partners[partner]["AMO_URL"],
+                long_token=settings.partners[partner]["AMO_TOKEN"],
+                pipelines=pipelines,
+                pipelines_statuses=pipelines_statuses
+            )
             result = await amo_client.update_lead_status(lead_id, data.status)
+            logger.debug(f'result = {result}')
         except Exception as e:
+            logger.error('update_contact_status error = %r', str(e))
             raise HTTPException(status_code=400, detail=f'{e} parameters = {data}')
     else:
-        raise HTTPException(status_code=404, detail=f"lead not fount by contact id = {data.contact_id}")
+        logger.warning(
+            "update_contact_status: contact, lead or partner is None. Contact = %r, lead_id = %r, partner = %r",
+            contact, lead_id, partner
+        )
+        raise HTTPException(status_code=404, detail=f"lead or partner not fount by contact id = {data.contact_id}")
     return result
