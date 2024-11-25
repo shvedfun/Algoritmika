@@ -70,14 +70,14 @@ class BackgroundManager:
     async def _do_new_lead(self, amo_client: AMOClient, partner):
         pipeline_id = amo_client.pipelines_get('default')
         logger.debug('amo_client.pipelines = %r', amo_client.pipelines)
-        result = await amo_client.get_leads(pipeline_id=pipeline_id)
+        result = await amo_client.get_leads(pipeline_id=pipeline_id, params={"order[created_at]": "desc"})
         if result:
             logger.debug(f'result get leads = {result}')
         leads = amo_client.get_leads_from_response(result)
         schools = db_executor.get_school()
         for lead in leads:
             logger.debug(f'schools = {schools}')
-            if lead.get('status_id', 0) == amo_client.pipelines_statuses[str(pipeline_id)]["Первичный контакт"]:
+            if lead.get('status_id', 0) == amo_client.pipelines_statuses[str(pipeline_id)]["default_Первичный_контакт"]:
                 contacts = AMOClient.get_contact_ids_from_dict_lead(lead)
                 main_contact_id = amo_client.get_main_contact_id(contacts)
                 logger.debug(f'main_contact_id = {main_contact_id}')
@@ -88,7 +88,7 @@ class BackgroundManager:
                     if validated_contact['phone']:
                         db_executor.upsert_contact_from_amo(validated_contact)
                         new_pipeline_id = amo_client.pipelines_get('AI')
-                        new_status_id = amo_client.pipelines_statuses[str(new_pipeline_id)]["Первичный контакт"]
+                        new_status_id = amo_client.pipelines_statuses[str(new_pipeline_id)]["AI_Первичный_контакт"]
                         data_patch_leads = [{'id': lead['id'],
                                              'pipeline_id': new_pipeline_id,
                                              'status_id': new_status_id,
@@ -101,7 +101,7 @@ class BackgroundManager:
 
                     else:
                         new_pipeline_id = amo_client.pipelines_get('Human')
-                        new_status_id = amo_client.pipelines_statuses[new_pipeline_id]["Первичный контакт"]
+                        new_status_id = amo_client.pipelines_statuses[new_pipeline_id]["Human_Первичный_контакт"]
                         data_patch_leads = [{'id': lead['id'],
                                              'pipeline_id': new_pipeline_id,
                                              'status_id': new_status_id,
