@@ -12,19 +12,19 @@ logger = get_logger(__name__)
 
 client = os.getenv("CLIENT", "turboagency")
 
-with open("amo_utils/amo_conf.json", "r", encoding="utf-8") as f:
-    conf = json.loads(f.read())
-
-conf = conf[client]
-pipelines = conf["pipelines"]
-for k, v in pipelines.items():
-    pipelines[k] = int(v)
-
-pipelines_statuses = conf["pipelines_statuses"]
-new_pipelines_statuses = {}
-for k, v in pipelines_statuses.items():
-    new_pipelines_statuses[int(k)] = v
-pipelines_statuses = new_pipelines_statuses
+# with open("amo_utils/amo_conf.json", "r", encoding="utf-8") as f:
+#     conf = json.loads(f.read())
+#
+# conf = conf[client]
+# pipelines = conf["pipelines"]
+# for k, v in pipelines.items():
+#     pipelines[k] = int(v)
+#
+# pipelines_statuses = conf["pipelines_statuses"]
+# new_pipelines_statuses = {}
+# for k, v in pipelines_statuses.items():
+#     new_pipelines_statuses[int(k)] = v
+# pipelines_statuses = new_pipelines_statuses
 
 
 class AMOClientData: # TODO переписать под мулти
@@ -157,7 +157,7 @@ class AMOClient(AMOClientData, AMOClientStatic):
         kwargs['params'] |= {'with': 'contacts'}
         if pipeline_id:
             kwargs['params'] |= {'filter[pipeline_id]': pipeline_id}
-        # logger.debug(f'kwargs = {kwargs}')
+        logger.debug('kwargs = %r', kwargs)
         status, result = await self._request_get(suffics_name="leads", **kwargs)
         # logger.debug(f'status = {status}')
         return result

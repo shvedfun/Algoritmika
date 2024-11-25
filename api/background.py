@@ -2,7 +2,7 @@ import asyncio
 import json
 import traceback
 
-from amo_utils.client import AMOClient, pipelines
+from amo_utils.client import AMOClient # , #pipelines
 from ai_utils.client import AIClient
 from api.utils.logger import get_logger
 from api.ydb_utils import db_executor
