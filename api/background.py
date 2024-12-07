@@ -76,7 +76,7 @@ class BackgroundManager:
         leads = amo_client.get_leads_from_response(result)
         schools = db_executor.get_school()
         for lead in leads:
-            logger.debug(f'schools = {schools}')
+            logger.debug(f'lead = {lead}')
             if lead.get('status_id', 0) == amo_client.pipelines_statuses[str(pipeline_id)]["default_Первичный_контакт"]:
                 contacts = AMOClient.get_contact_ids_from_dict_lead(lead)
                 main_contact_id = amo_client.get_main_contact_id(contacts)
