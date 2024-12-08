@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-with open("api/secrets_conf.json", "r", encoding="utf-8") as f:
+with open("ext_conf/secrets_conf.json", "r", encoding="utf-8") as f:
     partners = json.loads(f.read())
 
 settings.partners = partners
