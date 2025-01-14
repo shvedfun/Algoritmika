@@ -20,10 +20,15 @@ class MessagesUtils:
         for phone_message in phone_messages:
             contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
             if contact_id:
+                db_contact = db_executor.get_contact(contact_id)
+                params = db_contact.get("params", {})
+                if params.get("disable"):
+                    return
                 if phone_message.phone == phone_message.author:
                     db_executor.disable_contact(contact_id)
                     logger.debug("disable contact_id = %r",contact_id)
                     return
+
                 message = Message(contact_id=contact_id, text=phone_message.text,
                                   created=phone_message.created,
                                   ai_id="",)
