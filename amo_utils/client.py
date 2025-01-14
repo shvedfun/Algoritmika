@@ -131,6 +131,7 @@ class AMOClient(AMOClientData, AMOClientStatic):
                           ):
                 result = json.loads(result)
             else:
+                logger.warning("_request_get status = %s result = %s", status, json.loads(result))
                 result = {}
         return status, result
 
@@ -159,7 +160,7 @@ class AMOClient(AMOClientData, AMOClientStatic):
             kwargs['params'] |= {'filter[pipeline_id]': pipeline_id}
         logger.debug('kwargs = %r', kwargs)
         status, result = await self._request_get(suffics_name="leads", **kwargs)
-        # logger.debug(f'status = {status}')
+        logger.debug(f'status get_leads = {status}')
         return result
 
     async def patch_leads(self, json_data, **kwargs):
