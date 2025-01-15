@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     WAZZUP_URL: str = "https://api.wazzup24.com"
     WAZZUP_TOKEN: str = "Bearer 32fd6c110b65434fa87b47f25f07cb2d" #os.getenv("WAZZUP_TOKEN", "")
     IS_LOCAL: int = int(os.getenv("IS_LOCAL", 0))
+    LOG_LEVEL: int = int(os.getenv("LOG_LEVEL", "20"))
     partners: dict = {}
 
     class ConfigDict:

@@ -72,9 +72,11 @@ class BackgroundManager:
         logger.debug('amo_client.pipelines = %r', amo_client.pipelines)
         result = await amo_client.get_leads(pipeline_id=pipeline_id, params={"order[created_at]": "desc"})
         if result:
+            pass
             logger.debug(f'result get leads = {result}')
         leads = amo_client.get_leads_from_response(result)
         schools = db_executor.get_school()
+        result = None
         for lead in leads:
             logger.debug(f'lead = {lead}')
             if lead.get('status_id', 0) == amo_client.pipelines_statuses[str(pipeline_id)]["default_Первичный_контакт"]:

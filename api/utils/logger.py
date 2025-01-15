@@ -2,6 +2,8 @@ import datetime
 import logging
 import os
 
+from api.config import settings
+
 log_format = '%(levelname)s : %(asctime)s - %(module)s/%(funcName)s - %(message)s'
 
 curr_dt = datetime.datetime.utcnow().replace(microsecond=0)
@@ -15,7 +17,7 @@ def get_logger(module):
     file_handler.setFormatter(formatter)
 
     custom_logger = logging.getLogger(module)
-    custom_logger.setLevel(logging.DEBUG)
+    custom_logger.setLevel(settings.LOG_LEVEL)
 
     custom_logger.addHandler(handler)
     custom_logger.addHandler(file_handler)
