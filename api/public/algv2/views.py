@@ -167,7 +167,7 @@ def get_contacts(contact_id: int = None):
     result = db_executor.get_contact(contact_id)
     logger.debug(f'result = {result}')
     results = []
-    for r in result:
+    for r in [result] if result else []:
         r = delete_null(r)
         results.append(Contact(**r))
     return results
@@ -234,7 +234,6 @@ async def update_contact_status(data: UpdateContactStatus):
     lead_id = None
     partner = None
     if contact:
-        contact = contact[0]
         lead_id = contact.get('amo_lead_id')
         partner = contact.get('partner')
     # lead_id = db_executor.get_lead_id_from_contact_id(data.contact_id)

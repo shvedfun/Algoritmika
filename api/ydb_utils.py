@@ -104,8 +104,16 @@ class DBExecutor:
         sql += " ORDER BY id DESC"
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)[0].rows
+        result = result[0] if result else None
         logger.debug(f'contact_result = {result}')
         return result
+
+    def disable_contact(self, contact_id):
+        db_contact = self.get_contact(contact_id)
+        params = db_contact.get("params", {})
+        params["disable"] = True
+        db_contact["params"] = params
+        self.upsert_contact_from_amo(db_contact)
 
     def insert_message(self, ms: Message):
         # if not ms.id:
@@ -138,7 +146,6 @@ class DBExecutor:
         contact = self.get_contact(contact_id=contact_id)
         logger.debug(f'contact = {contact}')
         if contact:
-            contact = contact[0]
             lead_id = contact.get('amo_lead_id')
         logger.debug(f"lead_id = {lead_id}")
         return lead_id
@@ -153,7 +160,6 @@ class DBExecutor:
             contact = self.get_contact(contact_id=student.contact_id)
         logger.debug(f'contact = {contact}')
         if contact:
-            contact = contact[0]
             lead_id = contact.get('amo_lead_id')
         logger.debug(f"lead_id = {lead_id}")
         return lead_id

@@ -72,7 +72,6 @@ class BackgroundManager:
         logger.debug('amo_client.pipelines = %r', amo_client.pipelines)
         result = await amo_client.get_leads(pipeline_id=pipeline_id, params={"order[created_at]": "desc"})
         if result:
-            pass
             logger.debug(f'result get leads = {result}')
         leads = amo_client.get_leads_from_response(result)
         schools = db_executor.get_school()
