@@ -257,5 +257,5 @@ async def update_contact_status(data: UpdateContactStatus):
             "update_contact_status: contact, lead or partner is None. Contact = %r, lead_id = %r, partner = %r",
             contact, lead_id, partner
         )
-        raise HTTPException(status_code=404, detail=f"lead or partner not fount by contact id = {data.contact_id}")
+        raise HTTPException(status_code=400, detail=f"lead or partner not fount by contact id = {data.contact_id}")
     return result

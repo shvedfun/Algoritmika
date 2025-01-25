@@ -70,7 +70,7 @@ class AMOClientStatic:
         contact['phone'] = None
         contact['partner'] = partner
         params = {}
-        for cust_f in amo_contact["custom_fields_values"]:
+        for cust_f in (amo_contact["custom_fields_values"] or []):
             if cust_f.get("field_code") == "PHONE":
                 contact['phone'] = AMOClientStatic.clear_phone_number(cust_f.get("values")[0]['value'])
             else:

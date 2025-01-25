@@ -102,7 +102,7 @@ class BackgroundManager:
 
                     else:
                         new_pipeline_id = amo_client.pipelines_get('Human')
-                        new_status_id = amo_client.pipelines_statuses[new_pipeline_id]["Human_Первичный_контакт"]
+                        new_status_id = amo_client.pipelines_statuses[str(new_pipeline_id)]["Human_Первичный_контакт"]
                         data_patch_leads = [{'id': lead['id'],
                                              'pipeline_id': new_pipeline_id,
                                              'status_id': new_status_id,
