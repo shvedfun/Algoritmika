@@ -57,6 +57,14 @@ class DBExecutor:
         logger.debug(f'sql = {sql}')
         result = db.execute_query(sql)
 
+    def upsert_contact(self, c):
+        sql = f'UPSERT INTO i_contact (id, amo_id, amo_lead_id, name, first_name, last_name, phone, created, params, partner) VALUES ' \
+              f'({c.id}, {c.amo_id}, {c.amo_lead_id}, \'{c.name}\', \'{c.first_name}\', \'{c.last_name}\', \'{c.phone}\', CAST(\'{c.created}\' AS DateTime), \'{json.dumps(c.params)}\', \'{c.partner}\')'
+        logger.debug(f'sql = {sql}')
+        result = db.execute_query(sql)
+        return result
+
+
     def get_group(self, id):
         sql = f'SELECT * FROM i_group WHERE id = {id}'
         result = self.db.execute_query(sql)[0].rows
@@ -110,10 +118,11 @@ class DBExecutor:
 
     def disable_contact(self, contact_id):
         db_contact = self.get_contact(contact_id)
-        params = db_contact.get("params", {})
-        params["disable"] = True
-        db_contact["params"] = params
-        self.upsert_contact_from_amo(db_contact)
+        if db_contact:
+            params = json.loads(db_contact.params) if db_contact.params  else {}
+            params["disable"] = True
+            db_contact.params = params
+            self.upsert_contact(db_contact)
 
     def insert_message(self, ms: Message):
         # if not ms.id:

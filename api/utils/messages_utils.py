@@ -1,4 +1,5 @@
 import http
+import json
 import traceback
 from datetime import datetime
 
@@ -21,12 +22,13 @@ class MessagesUtils:
             contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
             if contact_id:
                 db_contact = db_executor.get_contact(contact_id)
-                params = db_contact.get("params", {})
-                if params.get("disable"):
+                params = json.loads((db_contact.params) if db_contact.params else {})
+                if params.get("disable", False) == True:
+                    logger.info("contact disabled = %s", str(contact_id))
                     return
                 if phone_message.phone == phone_message.author:
                     db_executor.disable_contact(contact_id)
-                    logger.debug("disable contact_id = %r",contact_id)
+                    logger.info("disable contact_id = %r",contact_id)
                     return
 
                 message = Message(contact_id=contact_id, text=phone_message.text,
@@ -44,11 +46,11 @@ class MessagesUtils:
         for message in messages:
             contact = db_executor.get_contact(contact_id=message.contact_id)
             if contact:
-                if not contact.params.get("disable", False):
+                if (not contact.params) or (not (json.loads(contact.params).get("disable", False))):
                     phone = contact.phone
                     text = message.text
                     phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
-                    logger.debug(f'send message 2 whatsapp_client phone_message = {phone_message}')
+                    logger.info(f'send message 2 whatsapp_client phone_message = {phone_message}')
                     whatsapp_client = get_whatsapp_client(contact.partner)
                     status = await whatsapp_client.send_message(phone_message)
 
@@ -56,7 +58,9 @@ class MessagesUtils:
                         logger.error(f'message not in whatsapp {message}')
                     db_executor.insert_message(message)
                 else:
-                    logger.debug("Not send AI message to disabled contact = %r", contact)
+                    logger.info("Not send AI message to disabled contact = %r", contact)
+            else:
+                logger.info("Not send AI message to contact = %r", contact)
         return
 
     @staticmethod
