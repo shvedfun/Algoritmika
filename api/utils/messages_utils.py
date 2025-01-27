@@ -22,13 +22,16 @@ class MessagesUtils:
             contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
             if contact_id:
                 db_contact = db_executor.get_contact(contact_id)
-                params = json.loads((db_contact.params) if db_contact.params else {})
+                params = json.loads(db_contact.params) if db_contact.params else {}
                 if params.get("disable", False) == True:
                     logger.info("contact disabled = %s", str(contact_id))
                     return
-                if phone_message.phone == phone_message.author:
+                if phone_message.phone != phone_message.author:
                     db_executor.disable_contact(contact_id)
-                    logger.info("disable contact_id = %r",contact_id)
+                    logger.info(
+                        "disable contact_id = %r, phone = %r, author = %r",
+                        contact_id, phone_message.phone, phone_message.author
+                    )
                     return
 
                 message = Message(contact_id=contact_id, text=phone_message.text,
