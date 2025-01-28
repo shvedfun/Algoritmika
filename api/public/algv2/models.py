@@ -102,6 +102,7 @@ class PhoneMessage(BaseModel):
     created: datetime
     phone: str
     author: str = ""
+    chatid: str
 
 class FAQ(BaseModel):
     id: int | None

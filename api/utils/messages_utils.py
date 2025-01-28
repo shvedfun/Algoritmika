@@ -26,11 +26,11 @@ class MessagesUtils:
                 if params.get("disable", False) == True:
                     logger.info("contact disabled = %s", str(contact_id))
                     return
-                if phone_message.phone != phone_message.author:
+                if phone_message.phone != phone_message.chatid:
                     db_executor.disable_contact(contact_id)
                     logger.info(
-                        "disable contact_id = %r, phone = %r, author = %r",
-                        contact_id, phone_message.phone, phone_message.author
+                        "disable contact_id = %r, phone = %r, author = %r, chatid = %r",
+                        contact_id, phone_message.phone, phone_message.author, phone_message.chatid
                     )
                     return
 

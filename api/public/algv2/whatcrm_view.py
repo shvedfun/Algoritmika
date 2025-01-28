@@ -19,8 +19,9 @@ async def handle_webhook(body: dict, response: Response, background_tasks: Backg
             text = message['body']
             phone = message['from'].replace("@c.us", "")
             author = message.get('author', "").replace("@c.us", "")
+            chatid = message.get('chatId', "").replace("@c.us", "")
             tst = datetime.fromtimestamp(message["timestamp"], timezone.utc)
-            new_message = PhoneMessage(text=text, phone=phone, created=tst, author=author)
+            new_message = PhoneMessage(text=text, phone=phone, created=tst, author=author, chatid=chatid)
             logger.debug(f'phone_messages = {new_message}')
             background_tasks.add_task(MessagesUtils.handle_messages_from_client, [new_message])
             response.status_code = http.HTTPStatus.CREATED

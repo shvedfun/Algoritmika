@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import traceback
 
@@ -62,8 +63,9 @@ class BackgroundManager:
                 pipelines=params["pipelines"],
                 pipelines_statuses=params["pipelines_statuses"],
             )
-            logger.info('partner %r', partner)
+            tst = datetime.datetime.now()
             await self._do_new_lead(amo_client, partner)
+            logger.info('partner %r. Длительность = ', partner, datetime.datetime.now() - tst)
 
 
 
