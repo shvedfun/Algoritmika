@@ -102,7 +102,8 @@ class PhoneMessage(BaseModel):
     created: datetime
     phone: str
     author: str = ""
-    chatid: str
+    chatid: str = ""
+    ack: int = -1
 
 class FAQ(BaseModel):
     id: int | None

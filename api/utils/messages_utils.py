@@ -33,15 +33,15 @@ class MessagesUtils:
                         contact_id, phone_message.phone, phone_message.author, phone_message.chatid
                     )
                     return
-
-                message = Message(contact_id=contact_id, text=phone_message.text,
-                                  created=phone_message.created,
-                                  ai_id="",)
-                try:
-                    message: Message = db_executor.insert_message(message)
-                    await ai_client.send_message2ai(message.contact_id, message=message.text)
-                except Exception as e:
-                    logger.error(f'Error = {e} {traceback.format_exc()}')
+                if phone_message.ack == 1:
+                    message = Message(contact_id=contact_id, text=phone_message.text,
+                                      created=phone_message.created,
+                                      ai_id="",)
+                    try:
+                        message: Message = db_executor.insert_message(message)
+                        await ai_client.send_message2ai(message.contact_id, message=message.text)
+                    except Exception as e:
+                        logger.error(f'Error = {e} {traceback.format_exc()}')
         return
 
     @staticmethod

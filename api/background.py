@@ -65,7 +65,7 @@ class BackgroundManager:
             )
             tst = datetime.datetime.now()
             await self._do_new_lead(amo_client, partner)
-            logger.info('partner %r. Длительность = ', partner, datetime.datetime.now() - tst)
+            logger.info('partner %r. Длительность = %r', partner, str(datetime.datetime.now() - tst))
 
 
 
