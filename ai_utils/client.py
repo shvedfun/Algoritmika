@@ -7,6 +7,8 @@ from api.config import settings
 
 logger = get_logger(__name__)
 
+logger.info("setting_id = %r", id(settings))
+
 TEST = False
 
 class AIClientData:

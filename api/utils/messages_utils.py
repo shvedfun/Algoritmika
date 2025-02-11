@@ -12,6 +12,7 @@ from api.whatsapp.clients import get_whatsapp_client
 from api.config import settings
 
 logger = get_logger(__name__)
+logger.info("setting_id = %r", id(settings))
 
 class MessagesUtils:
 
@@ -19,14 +20,14 @@ class MessagesUtils:
     async def handle_messages_from_client(phone_messages: list[PhoneMessage]):
         ai_client: AIClient = get_ai_client()
         for phone_message in phone_messages:
-            contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.phone)
+            contact_id: int = db_executor.get_contact_id_by_phone(phone=phone_message.chatid)
             if contact_id:
                 db_contact = db_executor.get_contact(contact_id)
                 params = json.loads(db_contact.params) if db_contact.params else {}
                 if params.get("disable", False) == True:
                     logger.info("contact disabled = %s", str(contact_id))
                     return
-                if phone_message.phone != phone_message.chatid:
+                if phone_message.phone != phone_message.chatid and not (phone_message.message_id in settings.send_ai_ids):
                     db_executor.disable_contact(contact_id)
                     logger.info(
                         "disable contact_id = %r, phone = %r, author = %r, chatid = %r",
@@ -55,8 +56,9 @@ class MessagesUtils:
                     phone_message = PhoneMessage(phone=phone, text=text, created=message.created)
                     logger.info(f'send message 2 whatsapp_client phone_message = {phone_message}')
                     whatsapp_client = get_whatsapp_client(contact.partner)
-                    status = await whatsapp_client.send_message(phone_message)
-
+                    status, payload = await whatsapp_client.send_message(phone_message)
+                    if payload.get("id"):
+                        settings.send_ai_ids.add(payload["id"])
                     if status not in (http.HTTPStatus.OK, http.HTTPStatus.CREATED):
                         logger.error(f'message not in whatsapp {message}')
                     db_executor.insert_message(message)

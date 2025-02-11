@@ -104,6 +104,7 @@ class PhoneMessage(BaseModel):
     author: str = ""
     chatid: str = ""
     ack: int = -1
+    message_id: str = ""
 
 class FAQ(BaseModel):
     id: int | None

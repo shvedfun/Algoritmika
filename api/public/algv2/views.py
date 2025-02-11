@@ -21,6 +21,8 @@ router = APIRouter()
 
 logger = get_logger(__name__)
 
+logger.info("setting_id = %r", id(settings))
+
 def delete_null(r: dict):
     for k, v in r.copy().items():
         if v is None:

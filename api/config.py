@@ -1,10 +1,12 @@
 import json
 import os
 import secrets
+import logging
 from typing import Literal
 
 from pydantic_settings import BaseSettings
 
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = f"Algoritmika"
@@ -28,6 +30,7 @@ class Settings(BaseSettings):
     IS_LOCAL: int = int(os.getenv("IS_LOCAL", 0))
     LOG_LEVEL: int = int(os.getenv("LOG_LEVEL", "20"))
     partners: dict = {}
+    send_ai_ids: set | None  = None
 
     class ConfigDict:
         case_sensitive = True
@@ -39,6 +42,8 @@ with open("ext_conf/secrets_conf.json", "r", encoding="utf-8") as f:
     partners = json.loads(f.read())
 
 settings.partners = partners
+settings.send_ai_ids = set()
+logger.info("setting_id = %r", id(settings))
 
 class TestSettings(Settings):
     class Config:

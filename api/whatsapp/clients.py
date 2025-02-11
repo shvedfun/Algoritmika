@@ -14,7 +14,7 @@ from api.utils.logger import get_logger
 from .wazzup_utils import WazzupUtils, WazzupClientStatic, WazzupClientData
 
 logger = get_logger(__name__)
-
+logger.info("setting_id = %r", id(settings))
 
 class WhatAppClient(ABC):
     @abstractmethod
@@ -55,7 +55,7 @@ class WhatCrm(WhatAppClient):
                 if result:
                     result = json.loads(result)
                 status = response.status
-                logger.debug('status = %r, body = %r', status, result)
+                logger.info('status = %r, body = %r', status, result)
         return status, result
 
 
